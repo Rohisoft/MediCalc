@@ -67,11 +67,7 @@ export default function ReportsScreen() {
     });
     const payEntries = Object.entries(payMap).sort((a, b) => b[1] - a[1]);
 
-    // GST
-    const taxable = bills.reduce((s, b) => s + b.subtotal, 0);
-    const totalGst = bills.reduce((s, b) => s + b.gst, 0);
-
-    return { revenue, profit, billCount, itemsSold, avgBill, avgItems, topItems, maxQty, payEntries, taxable, totalGst };
+    return { revenue, profit, billCount, itemsSold, avgBill, avgItems, topItems, maxQty, payEntries };
   }, [state.bills, period]);
 
   const noData = stats.billCount === 0;
@@ -152,20 +148,6 @@ export default function ReportsScreen() {
               </>
             )}
 
-            <Text style={styles.sectionTitle}>GST summary</Text>
-            <View style={styles.card}>
-              {[
-                { label: 'Taxable amount', value: `₹${stats.taxable.toLocaleString('en-IN')}` },
-                { label: 'CGST (2.5%)',    value: `₹${Math.round(stats.totalGst / 2).toLocaleString('en-IN')}` },
-                { label: 'SGST (2.5%)',    value: `₹${Math.round(stats.totalGst / 2).toLocaleString('en-IN')}` },
-                { label: 'Total GST',      value: `₹${stats.totalGst.toLocaleString('en-IN')}`, bold: true },
-              ].map((r, i) => (
-                <View key={i} style={[styles.gstRow, i > 0 && { borderTopWidth: 0.5, borderTopColor: COLORS.border }]}>
-                  <Text style={[styles.gstLabel, r.bold && { fontWeight: '600', color: COLORS.text }]}>{r.label}</Text>
-                  <Text style={[styles.gstVal, r.bold && { fontWeight: '700', color: COLORS.primary }]}>{r.value}</Text>
-                </View>
-              ))}
-            </View>
           </>
         )}
 
@@ -201,7 +183,4 @@ const styles = StyleSheet.create({
   barValue:     { fontSize: 12, color: COLORS.text, fontWeight: '500' },
   barTrack:     { height: 8, backgroundColor: COLORS.bg, borderRadius: 4, overflow: 'hidden' },
   barFill:      { height: 8, borderRadius: 4 },
-  gstRow:       { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8 },
-  gstLabel:     { fontSize: 13, color: COLORS.textMuted },
-  gstVal:       { fontSize: 13, color: COLORS.text },
 });

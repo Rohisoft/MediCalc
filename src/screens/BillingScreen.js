@@ -30,10 +30,9 @@ export default function BillingScreen({ navigation }) {
     ), [search, activeCategory, state.medicines]);
 
   const subtotal        = billItems.reduce((s, i) => s + i.price * i.qty, 0);
-  const gst             = Math.round(subtotal * 0.05);
   const discountPct     = Math.min(Math.max(parseFloat(discountInput) || 0, 0), 100);
-  const discount        = Math.round((subtotal + gst) * discountPct / 100);
-  const grandTotal      = subtotal + gst - discount;
+  const discount        = Math.round(subtotal * discountPct / 100);
+  const grandTotal      = subtotal - discount;
 
   const addItem = (med) => {
     if (med.stock === 0 || med.status === 'out') {
@@ -55,7 +54,7 @@ export default function BillingScreen({ navigation }) {
       id: `BILL-${Date.now()}`,
       date: new Date().toISOString(),
       items: billItems.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty, stock: i.stock ?? 0 })),
-      subtotal, gst, discount, grandTotal, paymentMethod,
+      subtotal, discount, grandTotal, paymentMethod,
       customerId: selectedCustomerId,
       customerName: selectedCustomer?.name || null,
     };
@@ -270,7 +269,6 @@ export default function BillingScreen({ navigation }) {
               {/* Totals */}
               <View style={m.totals}>
                 <View style={m.totalRow}><Text style={m.totalLabel}>Subtotal</Text><Text style={m.totalVal}>₹{subtotal}</Text></View>
-                <View style={m.totalRow}><Text style={m.totalLabel}>GST (5%)</Text><Text style={m.totalVal}>₹{gst}</Text></View>
                 {discount > 0 && (
                   <View style={m.totalRow}>
                     <Text style={[m.totalLabel, { color: COLORS.danger }]}>Discount</Text>

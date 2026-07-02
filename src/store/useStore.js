@@ -107,7 +107,7 @@ const INITIAL = {
   customers: [],
   cart:      [],
   payments:  [],
-  settings:  { shopName: '', ownerName: '', address: '', phone: '', gstNumber: '' },
+  settings:  { shopName: '', ownerName: '', address: '', phone: '' },
 };
 
 // ─── Supabase data loader ────────────────────────────────────
@@ -131,7 +131,6 @@ async function loadAllData(tenantId, tenant, dispatch) {
           ownerName: tenant.owner_name,
           address:   tenant.address,
           phone:     tenant.phone,
-          gstNumber: tenant.gst_number || '',
         },
       },
     });
@@ -149,7 +148,7 @@ const transformMed = m => ({
 const transformBill = b => ({
   id: b.id, billNumber: b.bill_number, customerId: b.customer_id, customerName: b.customer_name,
   items: b.items, subtotal: Number(b.subtotal), discount: Number(b.discount),
-  gst: Number(b.tax), grandTotal: Number(b.grand_total),
+  grandTotal: Number(b.grand_total),
   paymentMethod: b.payment_method, status: b.status, date: b.date,
 });
 const transformCustomer = c => ({
@@ -185,7 +184,7 @@ async function syncAction(action, tenantId) {
         customer_id: bill.customerId || null,
         customer_name: bill.customerName || null,
         items: bill.items,
-        subtotal: bill.subtotal, discount: 0, tax: bill.gst, grand_total: bill.grandTotal,
+        subtotal: bill.subtotal, discount: 0, tax: 0, grand_total: bill.grandTotal,
         payment_method: bill.paymentMethod,
         status: bill.paymentMethod === 'Credit' ? 'credit' : 'paid',
         date: bill.date,

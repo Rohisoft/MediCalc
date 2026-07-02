@@ -79,7 +79,6 @@ export default function BillDetailScreen({ route, navigation }) {
             <Text style={styles.shopName}>{settings.shopName}</Text>
             {settings.address ? <Text style={styles.shopDetail}>{settings.address}</Text> : null}
             {settings.phone ? <Text style={styles.shopDetail}>📞 {settings.phone}</Text> : null}
-            {settings.gstNumber ? <Text style={styles.shopDetail}>GST: {settings.gstNumber}</Text> : null}
           </View>
 
           <View style={styles.dashed} />
@@ -129,10 +128,6 @@ export default function BillDetailScreen({ route, navigation }) {
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>Subtotal</Text>
               <Text style={styles.totalVal}>₹{bill.subtotal}</Text>
-            </View>
-            <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>GST (5%)</Text>
-              <Text style={styles.totalVal}>₹{bill.gst}</Text>
             </View>
             {bill.discount > 0 && (
               <View style={styles.totalRow}>

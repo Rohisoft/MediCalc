@@ -74,12 +74,6 @@ function buildHTML(bill, settings) {
       letter-spacing: 0.3px; margin-bottom: 6px;
     }
     .shop-detail { font-size: 10px; color: #666; line-height: 1.7; }
-    .gst-chip {
-      display: inline-block; margin-top: 6px;
-      background: #EFF8FF; color: #1565C0;
-      border: 1px solid #BBDEFB; border-radius: 5px;
-      padding: 2px 9px; font-size: 9px; font-weight: 700;
-    }
 
     /* ── Bill meta ────────────────────────── */
     .meta {
@@ -171,7 +165,6 @@ function buildHTML(bill, settings) {
     <div class="shop-name">&#128138; ${esc(shopName)}</div>
     ${settings.address ? `<div class="shop-detail">${esc(settings.address)}</div>` : ''}
     ${settings.phone   ? `<div class="shop-detail">Tel: ${esc(settings.phone)}</div>` : ''}
-    ${settings.gstNumber ? `<span class="gst-chip">GST: ${esc(settings.gstNumber)}</span>` : ''}
   </div>
 
   <!-- ── Bill info ── -->
@@ -216,10 +209,6 @@ function buildHTML(bill, settings) {
       <tr>
         <td class="tl-label">Subtotal</td>
         <td class="tl-val">&#8377;${bill.subtotal}</td>
-      </tr>
-      <tr>
-        <td class="tl-label">GST (5%)</td>
-        <td class="tl-val">&#8377;${bill.gst}</td>
       </tr>
       ${discountRow}
       <tr class="grand-row">

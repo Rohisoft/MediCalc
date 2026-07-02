@@ -15,7 +15,6 @@ export function generateReceiptText(bill, settings) {
 
   lines.push(`💊 *${(settings.shopName || 'Medical Store').toUpperCase()}*`);
   if (settings.address) lines.push(`📍 ${settings.address}`);
-  if (settings.gstNumber) lines.push(`GST: ${settings.gstNumber}`);
   lines.push('');
   lines.push(sep);
   lines.push(`*Bill #: ${formatBillId(bill.id)}*`);
@@ -30,7 +29,6 @@ export function generateReceiptText(bill, settings) {
   lines.push('');
   lines.push(sep);
   lines.push(`Subtotal:${''.padEnd(16)}₹${bill.subtotal}`);
-  lines.push(`GST (5%):${''.padEnd(16)}₹${bill.gst}`);
   if (bill.discount && bill.discount > 0) {
     lines.push(`Discount:${''.padEnd(15)}-₹${bill.discount}`);
   }

@@ -20,7 +20,6 @@ export default function ProfileScreen() {
     ownerName: settings.ownerName || '',
     address:   settings.address   || '',
     phone:     settings.phone     || '',
-    gstNumber: settings.gstNumber || '',
   });
 
   const set = (key) => (val) => setForm(f => ({ ...f, [key]: val }));
@@ -31,7 +30,6 @@ export default function ProfileScreen() {
       ownerName: settings.ownerName || '',
       address:   settings.address   || '',
       phone:     settings.phone     || '',
-      gstNumber: settings.gstNumber || '',
     });
     setShowEdit(true);
   };
@@ -51,7 +49,6 @@ export default function ProfileScreen() {
           owner_name: form.ownerName.trim(),
           address:    form.address.trim(),
           phone:      form.phone.trim(),
-          gst_number: form.gstNumber.trim(),
         }).eq('id', tenant.id);
         await refreshTenant();
       }
@@ -107,8 +104,7 @@ export default function ProfileScreen() {
             <InfoRow label="Shop Name"   value={settings.shopName  || '—'} />
             <InfoRow label="Owner Name"  value={settings.ownerName || '—'} />
             <InfoRow label="Address"     value={settings.address   || '—'} />
-            <InfoRow label="Phone"       value={settings.phone     || '—'} />
-            <InfoRow label="GST Number"  value={settings.gstNumber || '—'} last />
+            <InfoRow label="Phone"       value={settings.phone     || '—'} last />
           </View>
         </View>
 
@@ -186,9 +182,6 @@ export default function ProfileScreen() {
 
               <Text style={m.label}>Phone Number</Text>
               <TextInput style={m.input} value={form.phone} onChangeText={set('phone')} placeholder="10-digit mobile number" placeholderTextColor={COLORS.textMuted} keyboardType="phone-pad" />
-
-              <Text style={m.label}>GST Number</Text>
-              <TextInput style={m.input} value={form.gstNumber} onChangeText={set('gstNumber')} placeholder="e.g. 23ABCDE1234F1Z5" placeholderTextColor={COLORS.textMuted} autoCapitalize="characters" />
 
               <View style={{ flexDirection: 'row', gap: 10, marginTop: 8 }}>
                 <TouchableOpacity style={m.cancelBtn} onPress={() => setShowEdit(false)}>
