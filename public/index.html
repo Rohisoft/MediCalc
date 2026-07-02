@@ -77,6 +77,13 @@
     #root { display: flex; min-height: 100vh; max-width: 430px; margin: 0 auto;
             box-shadow: 0 0 40px rgba(0,0,0,0.2); background: #f9fafb; }
 
+    /* Desktop: drop the phone-frame cap. Keep in sync with BREAKPOINTS.desktop
+       in src/utils/responsive.js — that's what swaps the React-side chrome
+       (sidebar vs bottom tabs) at the same width. */
+    @media (min-width: 1024px) {
+      #root { max-width: none; box-shadow: none; margin: 0; }
+    }
+
     /* Install banner */
     #install-banner {
       display: none; position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%);

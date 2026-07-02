@@ -6,6 +6,8 @@ import {
 import { COLORS } from '../data/medicines';
 import { useStore } from '../store/useStore';
 import { useAuth }  from '../auth/AuthContext';
+import { useIsDesktop } from '../utils/responsive';
+import DesktopContainer from '../components/DesktopContainer';
 
 const MONTH = { Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11 };
 
@@ -15,8 +17,8 @@ function parseExpiry(str) {
   return new Date(parseInt(yr), MONTH[mon] + 1, 0);
 }
 
-const StatCard = ({ label, value, sub, variant }) => (
-  <View style={[styles.statCard, variant === 'danger' && styles.statDanger, variant === 'warning' && styles.statWarning]}>
+const StatCard = ({ label, value, sub, variant, style }) => (
+  <View style={[styles.statCard, style, variant === 'danger' && styles.statDanger, variant === 'warning' && styles.statWarning]}>
     <Text style={styles.statLabel}>{label}</Text>
     <Text style={[styles.statValue, variant === 'danger' && { color: COLORS.danger }, variant === 'warning' && { color: COLORS.warning }]}>
       {value}
@@ -25,10 +27,33 @@ const StatCard = ({ label, value, sub, variant }) => (
   </View>
 );
 
+const AlertRow = ({ a }) => (
+  <View style={styles.alertItem}>
+    <View style={[styles.alertIcon, { backgroundColor: a.badgeBg }]}>
+      <Text style={{ fontSize: 18 }}>{a.icon}</Text>
+    </View>
+    <View style={styles.alertText}>
+      <Text style={styles.alertName}>{a.name}</Text>
+      <Text style={styles.alertDesc}>{a.desc}</Text>
+    </View>
+    <View style={[styles.badge, { backgroundColor: a.badgeBg }]}>
+      <Text style={[styles.badgeText, { color: a.badgeColor }]}>{a.badge}</Text>
+    </View>
+  </View>
+);
+
+const QUICK_ACTIONS = [
+  { icon: '🧾', label: 'New Bill',   sub: 'Create sale invoice', screen: 'Billing'   },
+  { icon: '📦', label: 'Add Stock',  sub: 'Update inventory',    screen: 'Inventory' },
+  { icon: '👥', label: 'Customers',  sub: 'View & manage',       screen: 'Customers' },
+  { icon: '📊', label: 'Reports',    sub: 'Sales & stock',       screen: 'Reports'   },
+];
+
 export default function DashboardScreen({ navigation }) {
   const { state } = useStore();
   const { settings } = state;
   const { subscriptionStatus, daysLeft } = useAuth();
+  const isDesktop = useIsDesktop();
   const today = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
 
   const stats = useMemo(() => {
@@ -110,72 +135,115 @@ export default function DashboardScreen({ navigation }) {
       )}
 
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-
-        <View style={styles.statsGrid}>
-          <StatCard
-            label="Today's Sales"
-            value={`₹${stats.todaySales.toLocaleString('en-IN')}`}
-            sub={stats.billCount > 0 ? `${stats.billCount} bill${stats.billCount > 1 ? 's' : ''} today` : 'No bills yet'}
-          />
-          <StatCard
-            label="Bills Today"
-            value={String(stats.billCount)}
-            sub={stats.billCount > 0 ? 'Tap Billing to add' : 'Create first bill'}
-          />
-          <StatCard
-            label="Low Stock"
-            value={String(stats.lowStock.length)}
-            sub="Items need reorder"
-            variant={stats.lowStock.length > 0 ? 'warning' : undefined}
-          />
-          <StatCard
-            label="Expiring Soon"
-            value={String(stats.expiringSoon.length)}
-            sub="Within 30 days"
-            variant={stats.expiringSoon.length > 0 ? 'danger' : undefined}
-          />
-        </View>
-
-        {alerts.length > 0 && (
-          <>
-            <Text style={styles.sectionTitle}>⚠️ Alerts</Text>
-            {alerts.map((a, i) => (
-              <View key={i} style={styles.alertItem}>
-                <View style={[styles.alertIcon, { backgroundColor: a.badgeBg }]}>
-                  <Text style={{ fontSize: 18 }}>{a.icon}</Text>
+        {isDesktop ? (
+          <DesktopContainer>
+            <View style={styles.desktopRow}>
+              <View style={styles.desktopMain}>
+                <View style={[styles.statsGrid, styles.statsGridDesktop]}>
+                  <StatCard
+                    style={styles.statCardDesktop}
+                    label="Today's Sales"
+                    value={`₹${stats.todaySales.toLocaleString('en-IN')}`}
+                    sub={stats.billCount > 0 ? `${stats.billCount} bill${stats.billCount > 1 ? 's' : ''} today` : 'No bills yet'}
+                  />
+                  <StatCard
+                    style={styles.statCardDesktop}
+                    label="Bills Today"
+                    value={String(stats.billCount)}
+                    sub={stats.billCount > 0 ? 'Tap Billing to add' : 'Create first bill'}
+                  />
+                  <StatCard
+                    style={styles.statCardDesktop}
+                    label="Low Stock"
+                    value={String(stats.lowStock.length)}
+                    sub="Items need reorder"
+                    variant={stats.lowStock.length > 0 ? 'warning' : undefined}
+                  />
+                  <StatCard
+                    style={styles.statCardDesktop}
+                    label="Expiring Soon"
+                    value={String(stats.expiringSoon.length)}
+                    sub="Within 30 days"
+                    variant={stats.expiringSoon.length > 0 ? 'danger' : undefined}
+                  />
                 </View>
-                <View style={styles.alertText}>
-                  <Text style={styles.alertName}>{a.name}</Text>
-                  <Text style={styles.alertDesc}>{a.desc}</Text>
-                </View>
-                <View style={[styles.badge, { backgroundColor: a.badgeBg }]}>
-                  <Text style={[styles.badgeText, { color: a.badgeColor }]}>{a.badge}</Text>
+
+                <Text style={styles.sectionTitle}>Quick Actions</Text>
+                <View style={[styles.qaGrid, styles.qaGridDesktop]}>
+                  {QUICK_ACTIONS.map((q, i) => (
+                    <TouchableOpacity key={i} style={[styles.qaBtn, styles.qaBtnDesktop]} onPress={() => navigation.navigate(q.screen)}>
+                      <Text style={styles.qaIcon}>{q.icon}</Text>
+                      <Text style={styles.qaLabel}>{q.label}</Text>
+                      <Text style={styles.qaSub}>{q.sub}</Text>
+                    </TouchableOpacity>
+                  ))}
                 </View>
               </View>
-            ))}
+
+              {alerts.length > 0 && (
+                <View style={styles.desktopSide}>
+                  <Text style={styles.sectionTitle}>⚠️ Alerts</Text>
+                  {alerts.map((a, i) => <AlertRow key={i} a={a} />)}
+                </View>
+              )}
+            </View>
+
+            <View style={styles.watermark}>
+              <Text style={styles.watermarkText}>Powered by VRNDAI · vrndai.com</Text>
+            </View>
+            <View style={{ height: 8 }} />
+          </DesktopContainer>
+        ) : (
+          <>
+            <View style={styles.statsGrid}>
+              <StatCard
+                label="Today's Sales"
+                value={`₹${stats.todaySales.toLocaleString('en-IN')}`}
+                sub={stats.billCount > 0 ? `${stats.billCount} bill${stats.billCount > 1 ? 's' : ''} today` : 'No bills yet'}
+              />
+              <StatCard
+                label="Bills Today"
+                value={String(stats.billCount)}
+                sub={stats.billCount > 0 ? 'Tap Billing to add' : 'Create first bill'}
+              />
+              <StatCard
+                label="Low Stock"
+                value={String(stats.lowStock.length)}
+                sub="Items need reorder"
+                variant={stats.lowStock.length > 0 ? 'warning' : undefined}
+              />
+              <StatCard
+                label="Expiring Soon"
+                value={String(stats.expiringSoon.length)}
+                sub="Within 30 days"
+                variant={stats.expiringSoon.length > 0 ? 'danger' : undefined}
+              />
+            </View>
+
+            {alerts.length > 0 && (
+              <>
+                <Text style={styles.sectionTitle}>⚠️ Alerts</Text>
+                {alerts.map((a, i) => <AlertRow key={i} a={a} />)}
+              </>
+            )}
+
+            <Text style={styles.sectionTitle}>Quick Actions</Text>
+            <View style={styles.qaGrid}>
+              {QUICK_ACTIONS.map((q, i) => (
+                <TouchableOpacity key={i} style={styles.qaBtn} onPress={() => navigation.navigate(q.screen)}>
+                  <Text style={styles.qaIcon}>{q.icon}</Text>
+                  <Text style={styles.qaLabel}>{q.label}</Text>
+                  <Text style={styles.qaSub}>{q.sub}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <View style={styles.watermark}>
+              <Text style={styles.watermarkText}>Powered by VRNDAI · vrndai.com</Text>
+            </View>
+            <View style={{ height: 8 }} />
           </>
         )}
-
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-        <View style={styles.qaGrid}>
-          {[
-            { icon: '🧾', label: 'New Bill',   sub: 'Create sale invoice', screen: 'Billing'   },
-            { icon: '📦', label: 'Add Stock',  sub: 'Update inventory',    screen: 'Inventory' },
-            { icon: '👥', label: 'Customers',  sub: 'View & manage',       screen: 'Customers' },
-            { icon: '📊', label: 'Reports',    sub: 'Sales & stock',       screen: 'Reports'   },
-          ].map((q, i) => (
-            <TouchableOpacity key={i} style={styles.qaBtn} onPress={() => navigation.navigate(q.screen)}>
-              <Text style={styles.qaIcon}>{q.icon}</Text>
-              <Text style={styles.qaLabel}>{q.label}</Text>
-              <Text style={styles.qaSub}>{q.sub}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <View style={styles.watermark}>
-          <Text style={styles.watermarkText}>Powered by VRNDAI · vrndai.com</Text>
-        </View>
-        <View style={{ height: 8 }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -218,4 +286,13 @@ const styles = StyleSheet.create({
   watermarkText:  { fontSize: 10, color: COLORS.border, letterSpacing: 0.3 },
   subWarning:     { backgroundColor: '#fef3c7', paddingHorizontal: 14, paddingVertical: 9 },
   subWarningText: { fontSize: 12, color: '#92400e', fontWeight: '500', textAlign: 'center' },
+
+  // Desktop-only — main content (stats + quick actions) beside an alerts sidebar.
+  desktopRow:        { flexDirection: 'row', gap: 24, paddingVertical: 24 },
+  desktopMain:        { flex: 1 },
+  desktopSide:        { width: 300 },
+  statsGridDesktop:   { padding: 0, marginBottom: 8 },
+  statCardDesktop:    { width: '23%' },
+  qaGridDesktop:      { paddingHorizontal: 0 },
+  qaBtnDesktop:       { width: '23%' },
 });

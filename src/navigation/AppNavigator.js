@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Text } from 'react-native';
+import { Text, Platform } from 'react-native';
 
 import DashboardScreen   from '../screens/DashboardScreen';
 import InventoryScreen   from '../screens/InventoryScreen';
@@ -12,6 +12,8 @@ import CustomersScreen   from '../screens/CustomersScreen';
 import ReportsScreen     from '../screens/ReportsScreen';
 import ProfileScreen     from '../screens/ProfileScreen';
 import { COLORS } from '../data/medicines';
+import { useIsDesktop } from '../utils/responsive';
+import DesktopSidebar, { SIDEBAR_WIDTH } from './DesktopSidebar';
 
 const Tab   = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -45,8 +47,15 @@ const LABELS = {
 };
 
 export default function AppNavigator() {
+  // Platform.OS === 'web' as a belt-and-suspenders guard alongside the width
+  // check: no native device (even a hypothetical Android tablet) should ever
+  // be able to render the desktop sidebar chrome.
+  const isDesktop = useIsDesktop() && Platform.OS === 'web';
+
   return (
     <Tab.Navigator
+      tabBar={isDesktop ? (props) => <DesktopSidebar {...props} /> : undefined}
+      sceneContainerStyle={isDesktop ? { marginLeft: SIDEBAR_WIDTH } : undefined}
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarIcon: () => (
