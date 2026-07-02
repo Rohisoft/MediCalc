@@ -75,21 +75,33 @@ export default function InventoryScreen() {
   const handleScanConfirm = (scannedItems) => {
     scannedItems.forEach(item => {
       const addQty = parseInt(item.qty) || 0;
+      // Blank/unparsed price or expiry from the scan is left as null so we
+      // don't overwrite an existing medicine's known values with a guess —
+      // only fields the user actually confirmed (scanned or hand-edited) get applied.
+      const price  = item.price  !== '' && !isNaN(parseFloat(item.price)) ? parseFloat(item.price) : null;
+      const expiry = item.expiry?.trim() || null;
+
       if (item.match) {
-        // Add to existing medicine stock
+        // Update existing medicine's stock, and price/expiry if provided —
+        // a rescan often reflects the latest wholesale cost and a new batch's expiry.
         const newStock = (item.match.stock || 0) + addQty;
-        dispatch({ type: 'UPDATE_MEDICINE_STOCK', id: item.match.id, stock: newStock });
+        dispatch({
+          type: 'UPDATE_MEDICINE_STOCK', id: item.match.id, stock: newStock,
+          ...(price  != null ? { price }  : {}),
+          ...(expiry != null ? { expiry } : {}),
+        });
       } else {
-        // Create new medicine entry
+        // Create new medicine entry — fall back to the same placeholders the
+        // manual "Add Medicine" form uses when a value wasn't scanned/entered.
         dispatch({
           type: 'ADD_MEDICINE',
           medicine: {
             name:   item.name,
             cat:    'Other',
-            price:  '0',
+            price:  price != null ? String(price) : '0',
             stock:  addQty,
             unit:   item.unit,
-            expiry: 'Dec 2027',
+            expiry: expiry || 'Dec 2027',
           },
         });
       }

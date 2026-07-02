@@ -31,7 +31,12 @@ function reducer(state, action) {
         ...state,
         medicines: state.medicines.map(m =>
           m.id === action.id
-            ? { ...m, stock: action.stock, status: computeStatus(action.stock) }
+            ? {
+                ...m,
+                stock: action.stock, status: computeStatus(action.stock),
+                ...(action.price  !== undefined ? { price: Number(action.price) } : {}),
+                ...(action.expiry !== undefined ? { expiry: action.expiry } : {}),
+              }
             : m
         ),
       };
@@ -191,6 +196,17 @@ async function syncAction(action, tenantId) {
         unit: m.unit || 'Strip', expiry: m.expiry || '',
         status: computeStatus(parseInt(m.stock) || 0),
       }));
+      break;
+    }
+
+    // Previously had no sync case at all — stock top-ups (manual "Add Stock"
+    // and bill-scan confirmations) only ever updated local state and were
+    // never written to the database, silently reverting on next reload.
+    case 'UPDATE_MEDICINE_STOCK': {
+      const updates = { stock: action.stock, status: computeStatus(action.stock) };
+      if (action.price  !== undefined) updates.price  = parseFloat(action.price) || 0;
+      if (action.expiry !== undefined) updates.expiry = action.expiry;
+      check(await supabase.from('medicines').update(updates).eq('id', action.id).eq('tenant_id', tenantId));
       break;
     }
 

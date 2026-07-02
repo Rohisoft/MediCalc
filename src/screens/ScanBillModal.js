@@ -63,6 +63,37 @@ function detectUnit(line) {
   return UNIT_MAP[k] || 'Strip';
 }
 
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// Wholesale bills print expiry as MM/YY or MM/YYYY (batch expiry, not a full
+// date) — distinct from a full invoice date (DD/MM/YYYY, 3 parts), which is
+// already excluded at the line level by SKIP_LINE. Converts to the "MMM YYYY"
+// format the rest of the app already uses (see InventoryScreen's expiryColor).
+function detectExpiry(tokens) {
+  for (const t of tokens) {
+    const m = t.match(/^(\d{1,2})[\/\-](\d{2}|\d{4})$/);
+    if (!m) continue;
+    const month = parseInt(m[1], 10);
+    if (month < 1 || month > 12) continue;
+    const year = m[2].length === 2 ? 2000 + parseInt(m[2], 10) : parseInt(m[2], 10);
+    return `${MONTHS[month - 1]} ${year}`;
+  }
+  return null;
+}
+
+// Rate/price columns are almost always printed with paise (e.g. 15.50),
+// distinguishing them from bare-integer qty/serial columns. Takes the first
+// decimal-looking token after the quantity, which is typically the
+// immediate next column in the common qty → rate → amount layout — so this
+// picks up the per-unit rate rather than the line-total amount.
+function detectPrice(tokens, fromIndex) {
+  for (let i = fromIndex; i < tokens.length; i++) {
+    const m = tokens[i].match(/^\d+\.\d{1,2}$/);
+    if (m) return parseFloat(tokens[i]);
+  }
+  return null;
+}
+
 function parseBillText(raw) {
   const results = [];
   const seen = new Set();
@@ -92,7 +123,11 @@ function parseBillText(raw) {
     if (seen.has(key)) continue;
     seen.add(key);
 
-    results.push({ name, qty, unit: detectUnit(line) });
+    results.push({
+      name, qty, unit: detectUnit(line),
+      price: detectPrice(tokens, qtyIndex + 1),
+      expiry: detectExpiry(tokens),
+    });
   }
   return results;
 }
@@ -148,6 +183,8 @@ export default function ScanBillModal({ visible, onClose, medicines, onConfirm }
 
         const mapped = extracted.map((e, i) => ({
           id: i, name: e.name, qty: String(e.qty), unit: e.unit,
+          price: e.price != null ? String(e.price) : '',
+          expiry: e.expiry || '',
           match: fuzzyMatch(e.name, medicines), included: true,
         }));
 
@@ -168,7 +205,7 @@ export default function ScanBillModal({ visible, onClose, medicines, onConfirm }
   const removeItem = (id) => setItems(p => p.filter(x => x.id !== id));
   const addRow = () => setItems(p => [
     ...p,
-    { id: Date.now(), name: '', qty: '1', unit: 'Strip', match: null, included: true },
+    { id: Date.now(), name: '', qty: '1', unit: 'Strip', price: '', expiry: '', match: null, included: true },
   ]);
 
   const handleConfirm = () => {
@@ -308,38 +345,64 @@ export default function ScanBillModal({ visible, onClose, medicines, onConfirm }
 
               {items.map(item => (
                 <View key={item.id} style={[s.itemCard, !item.included && s.itemDim]}>
-                  <TouchableOpacity onPress={() => toggleItem(item.id)}>
-                    <Text style={{ fontSize: 20 }}>{item.included ? '☑️' : '⬜'}</Text>
-                  </TouchableOpacity>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <TouchableOpacity onPress={() => toggleItem(item.id)}>
+                      <Text style={{ fontSize: 20 }}>{item.included ? '☑️' : '⬜'}</Text>
+                    </TouchableOpacity>
 
-                  <View style={{ flex: 1, gap: 3 }}>
-                    <TextInput
-                      style={s.nameInput}
-                      value={item.name}
-                      onChangeText={v => updateItem(item.id, 'name', v)}
-                      placeholder="Medicine name"
-                      placeholderTextColor="#9ca3af"
-                    />
-                    {item.match
-                      ? <Text style={s.matchText}>✅ {item.match.name} — current stock: {item.match.stock}</Text>
-                      : <Text style={s.newText}>🆕 New entry will be created</Text>
-                    }
+                    <View style={{ flex: 1, gap: 3 }}>
+                      <TextInput
+                        style={s.nameInput}
+                        value={item.name}
+                        onChangeText={v => updateItem(item.id, 'name', v)}
+                        placeholder="Medicine name"
+                        placeholderTextColor="#9ca3af"
+                      />
+                      {item.match
+                        ? <Text style={s.matchText}>✅ {item.match.name} — current stock: {item.match.stock}</Text>
+                        : <Text style={s.newText}>🆕 New entry will be created</Text>
+                      }
+                    </View>
+
+                    <View style={s.qtyCol}>
+                      <TextInput
+                        style={s.qtyBox}
+                        value={item.qty}
+                        onChangeText={v => updateItem(item.id, 'qty', v)}
+                        keyboardType="numeric"
+                        selectTextOnFocus
+                      />
+                      <Text style={s.qtyUnit}>{item.unit}</Text>
+                    </View>
+
+                    <TouchableOpacity onPress={() => removeItem(item.id)} style={{ paddingLeft: 2 }}>
+                      <Text style={{ color: '#ef4444', fontSize: 18, lineHeight: 22 }}>✕</Text>
+                    </TouchableOpacity>
                   </View>
 
-                  <View style={s.qtyCol}>
-                    <TextInput
-                      style={s.qtyBox}
-                      value={item.qty}
-                      onChangeText={v => updateItem(item.id, 'qty', v)}
-                      keyboardType="numeric"
-                      selectTextOnFocus
-                    />
-                    <Text style={s.qtyUnit}>{item.unit}</Text>
+                  <View style={s.subRow}>
+                    <View style={s.subField}>
+                      <Text style={s.subLabel}>Price ₹</Text>
+                      <TextInput
+                        style={s.subInput}
+                        value={item.price}
+                        onChangeText={v => updateItem(item.id, 'price', v)}
+                        keyboardType="decimal-pad"
+                        placeholder={item.match ? String(item.match.price) : '0.00'}
+                        placeholderTextColor="#9ca3af"
+                      />
+                    </View>
+                    <View style={s.subField}>
+                      <Text style={s.subLabel}>Expiry</Text>
+                      <TextInput
+                        style={s.subInput}
+                        value={item.expiry}
+                        onChangeText={v => updateItem(item.id, 'expiry', v)}
+                        placeholder={item.match ? (item.match.expiry || 'e.g. Jun 2027') : 'e.g. Jun 2027'}
+                        placeholderTextColor="#9ca3af"
+                      />
+                    </View>
                   </View>
-
-                  <TouchableOpacity onPress={() => removeItem(item.id)} style={{ paddingLeft: 2 }}>
-                    <Text style={{ color: '#ef4444', fontSize: 18, lineHeight: 22 }}>✕</Text>
-                  </TouchableOpacity>
                 </View>
               ))}
 
@@ -411,7 +474,7 @@ const s = StyleSheet.create({
   emptyHint:      { backgroundColor: '#fffbeb', borderRadius: 10, padding: 14, marginBottom: 12 },
   emptyHintText:  { fontSize: 13, color: '#92400e', lineHeight: 20, textAlign: 'center' },
 
-  itemCard:       { flexDirection: 'row', alignItems: 'center', gap: 8,
+  itemCard:       { gap: 8,
                     backgroundColor: '#fff', borderRadius: 12, padding: 12, marginBottom: 8,
                     borderWidth: 1, borderColor: '#e5e7eb',
                     shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 4, elevation: 1 },
@@ -424,6 +487,12 @@ const s = StyleSheet.create({
   qtyBox:         { borderWidth: 1.5, borderColor: '#d1d5db', borderRadius: 8,
                     paddingHorizontal: 6, paddingVertical: 4,
                     fontSize: 15, fontWeight: '700', textAlign: 'center', width: 58 },
+  subRow:         { flexDirection: 'row', gap: 10, paddingLeft: 28 },
+  subField:       { flex: 1 },
+  subLabel:       { fontSize: 10, color: '#9ca3af', marginBottom: 2 },
+  subInput:       { borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 8,
+                    paddingHorizontal: 8, paddingVertical: 5,
+                    fontSize: 12, color: '#111', backgroundColor: '#f9fafb' },
   qtyUnit:        { fontSize: 10, color: '#6b7280' },
 
   addRowBtn:      { borderWidth: 1.5, borderColor: COLORS.primary, borderStyle: 'dashed',
