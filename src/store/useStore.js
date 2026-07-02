@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
+import { Alert } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../auth/AuthContext';
 
@@ -115,10 +116,18 @@ async function loadAllData(tenantId, tenant, dispatch) {
   try {
     const [meds, bills, custs, pays] = await Promise.all([
       supabase.from('medicines').select('*').eq('tenant_id', tenantId).order('name'),
-      supabase.from('bills').select('*').eq('tenant_id', tenantId).order('date', { ascending: false }).limit(500),
+      supabase.from('bills').select('*').eq('tenant_id', tenantId).order('date', { ascending: false }),
       supabase.from('customers').select('*').eq('tenant_id', tenantId).order('name'),
-      supabase.from('payments').select('*').eq('tenant_id', tenantId).order('date', { ascending: false }).limit(300),
+      supabase.from('payments').select('*').eq('tenant_id', tenantId).order('date', { ascending: false }),
     ]);
+    // Supabase resolves (doesn't reject) even when a query itself errors —
+    // `data` comes back null in that case. Without this check, a single
+    // flaky query silently became `[] ` below and wiped that entire slice of
+    // state on every load, which looked identical to the data being deleted.
+    if (meds.error)  throw meds.error;
+    if (bills.error) throw bills.error;
+    if (custs.error) throw custs.error;
+    if (pays.error)  throw pays.error;
     dispatch({
       type: 'HYDRATE',
       payload: {
@@ -160,25 +169,36 @@ const transformPayment = p => ({
 });
 
 // ─── Supabase write sync ─────────────────────────────────────
+// Supabase calls don't throw on a database-level failure (RLS rejection,
+// constraint violation, etc.) — they resolve with { data, error }. Without
+// this check, a failed write is indistinguishable from a successful one: the
+// local optimistic state still shows it, right up until the next reload
+// re-fetches from the DB and it's simply gone. Every write below must be
+// wrapped so failures actually propagate to dispatchWithSync's catch.
+function check({ error }) {
+  if (error) throw error;
+}
+
 async function syncAction(action, tenantId) {
   switch (action.type) {
 
     case 'ADD_MEDICINE': {
       const m = action.medicine;
-      await supabase.from('medicines').upsert({
+      check(await supabase.from('medicines').upsert({
         id: m.id, tenant_id: tenantId,
         name: m.name, category: m.category || '',
         price: parseFloat(m.price) || 0, stock: parseInt(m.stock) || 0,
         unit: m.unit || 'Strip', expiry: m.expiry || '',
         status: computeStatus(parseInt(m.stock) || 0),
-      });
+      }));
       break;
     }
 
     case 'COMPLETE_BILL': {
       const { bill } = action;
-      // Insert bill
-      await supabase.from('bills').insert({
+      // Insert bill first — if this fails, throw immediately and skip the
+      // stock/customer updates below rather than silently partially applying.
+      check(await supabase.from('bills').insert({
         id: bill.id, tenant_id: tenantId,
         bill_number: bill.id.slice(-6).toUpperCase(),
         customer_id: bill.customerId || null,
@@ -188,25 +208,26 @@ async function syncAction(action, tenantId) {
         payment_method: bill.paymentMethod,
         status: bill.paymentMethod === 'Credit' ? 'credit' : 'paid',
         date: bill.date,
-      });
+      }));
       // Update stock for each sold item
       for (const item of bill.items) {
         const newStock = Math.max(0, (item.stock ?? 0) - item.qty);
-        await supabase.from('medicines')
+        check(await supabase.from('medicines')
           .update({ stock: newStock, status: computeStatus(newStock) })
-          .eq('id', item.id).eq('tenant_id', tenantId);
+          .eq('id', item.id).eq('tenant_id', tenantId));
       }
       // Update customer stats
       if (bill.customerId) {
-        const { data: c } = await supabase.from('customers').select('purchases,points,due').eq('id', bill.customerId).single();
+        const { data: c, error: custErr } = await supabase.from('customers').select('purchases,points,due').eq('id', bill.customerId).single();
+        if (custErr) throw custErr;
         if (c) {
           const newPurchases = (c.purchases || 0) + 1;
-          await supabase.from('customers').update({
+          check(await supabase.from('customers').update({
             purchases: newPurchases,
             points:    (c.points || 0) + Math.floor(bill.grandTotal / 10),
             due:       (c.due || 0) + (bill.paymentMethod === 'Credit' ? bill.grandTotal : 0),
             tier:      newPurchases >= 100 ? 'VIP' : newPurchases >= 50 ? 'Gold' : undefined,
-          }).eq('id', bill.customerId);
+          }).eq('id', bill.customerId));
         }
       }
       break;
@@ -214,23 +235,24 @@ async function syncAction(action, tenantId) {
 
     case 'ADD_CUSTOMER': {
       const c = action.customer;
-      await supabase.from('customers').insert({
+      check(await supabase.from('customers').insert({
         id: c.id, tenant_id: tenantId,
         name: c.name, phone: c.phone || '', tier: 'Regular',
         purchases: 0, points: 0, due: 0,
-      });
+      }));
       break;
     }
 
     case 'COLLECT_PAYMENT': {
-      await supabase.from('payments').insert({
+      check(await supabase.from('payments').insert({
         id: crypto.randomUUID(), tenant_id: tenantId,
         customer_id: action.customerId, amount: action.amount,
         method: action.method, date: new Date().toISOString(),
-      });
-      const { data: c } = await supabase.from('customers').select('due').eq('id', action.customerId).single();
+      }));
+      const { data: c, error: custErr } = await supabase.from('customers').select('due').eq('id', action.customerId).single();
+      if (custErr) throw custErr;
       if (c) {
-        await supabase.from('customers').update({ due: Math.max(0, (c.due || 0) - action.amount) }).eq('id', action.customerId);
+        check(await supabase.from('customers').update({ due: Math.max(0, (c.due || 0) - action.amount) }).eq('id', action.customerId));
       }
       break;
     }
@@ -256,7 +278,15 @@ export function StoreProvider({ children }) {
   const dispatchWithSync = useCallback(async (action) => {
     dispatch(action); // optimistic local update
     if (tenant?.id) {
-      syncAction(action, tenant.id).catch(e => console.error('syncAction:', e.message));
+      syncAction(action, tenant.id).catch(e => {
+        console.error('syncAction:', e.message);
+        // The optimistic update above already changed local state, but the
+        // write to the database failed — without this, that failure was
+        // completely invisible until the next reload silently dropped it.
+        const msg = `Could not save your last change (${action.type.replace(/_/g, ' ').toLowerCase()}). Check your connection and try again — it has not been saved yet.`;
+        if (typeof window !== 'undefined') window.alert(msg);
+        else Alert.alert('Save Failed', msg);
+      });
     }
   }, [tenant?.id]);
 
