@@ -299,7 +299,7 @@ function ManageTenantModal({ tenant, onClose, onSaved }) {
             <Text style={m.inviteSectionTitle}>🔗 Invite Link</Text>
             <Text style={m.inviteUrl} numberOfLines={2} selectable>{inviteLink || 'No invite code'}</Text>
             <View style={m.inviteActions}>
-              <TouchableOpacity style={[m.inviteBtn, copied && { backgroundColor: '#16a34a' }]} onPress={copyLink}>
+              <TouchableOpacity style={[m.inviteBtn, copied && { backgroundColor: '#1565C0' }]} onPress={copyLink}>
                 <Text style={m.inviteBtnText}>{copied ? '✅ Copied!' : '📋 Copy'}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[m.inviteBtn, { backgroundColor: '#25D366' }]} onPress={shareWhatsApp}>
@@ -356,7 +356,7 @@ const s = StyleSheet.create({
   tenantPlan:    { fontSize: 11, color: COLORS.primary, marginTop: 4, fontWeight: '600' },
   subBadge:      { borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },
   subBadgeText:  { fontSize: 12, fontWeight: '700' },
-  inviteBanner:  { backgroundColor: '#f0fdf4', borderTopWidth: 1, borderTopColor: '#d1fae5',
+  inviteBanner:  { backgroundColor: '#EFF8FF', borderTopWidth: 1, borderTopColor: '#BBDEFB',
                    padding: 16, alignItems: 'center' },
   inviteTitle:   { fontSize: 13, fontWeight: '700', color: COLORS.primary, marginBottom: 6 },
   inviteUrl:     { fontSize: 12, color: COLORS.text, backgroundColor: '#fff',
@@ -386,10 +386,10 @@ const m = StyleSheet.create({
                       borderBottomWidth: 0.5, borderBottomColor: COLORS.border },
   infoLabel:        { fontSize: 13, color: COLORS.textMuted },
   infoVal:          { fontSize: 13, fontWeight: '600', color: COLORS.text },
-  inviteSection:    { backgroundColor: '#f0fdf4', borderRadius: 12, padding: 14, marginTop: 20, marginBottom: 4 },
+  inviteSection:    { backgroundColor: '#EFF8FF', borderRadius: 12, padding: 14, marginTop: 20, marginBottom: 4 },
   inviteSectionTitle: { fontSize: 12, fontWeight: '700', color: COLORS.primary, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
   inviteUrl:        { fontSize: 12, color: COLORS.text, backgroundColor: '#fff', borderRadius: 8,
-                      padding: 10, borderWidth: 1, borderColor: '#d1fae5', marginBottom: 10 },
+                      padding: 10, borderWidth: 1, borderColor: '#BBDEFB', marginBottom: 10 },
   inviteActions:    { flexDirection: 'row', gap: 8 },
   inviteBtn:        { flex: 1, backgroundColor: COLORS.primary, borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
   inviteBtnText:    { color: '#fff', fontSize: 11, fontWeight: '600' },

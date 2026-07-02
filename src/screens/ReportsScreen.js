@@ -6,7 +6,7 @@ import {
 import { COLORS } from '../data/medicines';
 import { useStore } from '../store/useStore';
 
-const BAR_COLORS = ['#1a6b3a', '#185FA5', '#854F0B', '#993556', '#533AB7'];
+const BAR_COLORS = ['#1565C0', '#185FA5', '#854F0B', '#993556', '#533AB7'];
 
 const BarRow = ({ label, value, pct, color = COLORS.primary }) => (
   <View style={styles.barRow}>

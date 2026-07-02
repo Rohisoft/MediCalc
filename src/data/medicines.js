@@ -23,8 +23,8 @@ export const customers = [
 export const CATEGORIES = ['All', 'Analgesic', 'Antibiotic', 'Antacid', 'Vitamin', 'Diabetes', 'Cardiac', 'Antiallergic'];
 
 export const COLORS = {
-  primary: '#1a6b3a',
-  primaryLight: '#e8f5ee',
+  primary: '#1565C0',
+  primaryLight: '#E3F2FD',
   danger: '#c0392b',
   dangerLight: '#fdecea',
   warning: '#b7770d',

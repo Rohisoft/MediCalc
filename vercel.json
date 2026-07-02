@@ -1,0 +1,12 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "rewrites": [
+    { "source": "/guide", "destination": "/guide.html" },
+    {
+      "source": "/((?!bundle\\.js|sw\\.js|manifest\\.json|icon-.*|.*\\.png|.*\\.svg|.*\\.js|.*\\.css|.*\\.txt|.*\\.map).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

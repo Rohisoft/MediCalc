@@ -3,14 +3,14 @@
   <rect width="200" height="52" rx="10" fill="#0f172a"/>
 
   <!-- V accent bar -->
-  <rect x="12" y="14" width="4" height="24" rx="2" fill="#1a6b3a"/>
+  <rect x="12" y="14" width="4" height="24" rx="2" fill="#1565C0"/>
 
   <!-- VRNDAI text -->
   <text x="26" y="34" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
         font-size="22" font-weight="800" letter-spacing="3" fill="#ffffff">VRNDAI</text>
 
   <!-- dot -->
-  <circle cx="172" cy="26" r="3" fill="#1a6b3a"/>
+  <circle cx="172" cy="26" r="3" fill="#1565C0"/>
 
   <!-- tagline -->
   <text x="26" y="46" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"

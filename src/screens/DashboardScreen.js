@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
   header:          { backgroundColor: COLORS.primary, paddingHorizontal: 16, paddingTop: 10, paddingBottom: 12 },
   headerRow:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   headerBrand:     { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  headerDot:       { width: 7, height: 7, borderRadius: 3.5, backgroundColor: '#4ade80' },
+  headerDot:       { width: 7, height: 7, borderRadius: 3.5, backgroundColor: '#64B5F6' },
   headerAppName:   { color: '#fff', fontSize: 16, fontWeight: '800', letterSpacing: 0.4 },
   headerRight:     { flexDirection: 'row', alignItems: 'center', gap: 8 },
   headerDate:      { color: 'rgba(255,255,255,0.6)', fontSize: 11 },

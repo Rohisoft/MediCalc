@@ -6,6 +6,7 @@ import {
 import { COLORS } from '../data/medicines';
 import { useStore } from '../store/useStore';
 import { formatBillDate, formatBillId, shareBill } from '../utils/receipt';
+import { downloadBillPDF } from '../utils/pdfReceipt';
 
 const PAY_ICONS = { Cash: '💵', UPI: '📱', Card: '💳', Credit: '📒' };
 
@@ -159,7 +160,7 @@ export default function BillDetailScreen({ route, navigation }) {
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* Share button — fixed at bottom */}
+      {/* Action bar — fixed at bottom */}
       <View style={styles.shareBar}>
         <TouchableOpacity
           style={[styles.shareBtn, sharing && styles.shareBtnDisabled]}
@@ -167,8 +168,15 @@ export default function BillDetailScreen({ route, navigation }) {
           disabled={sharing}
         >
           <Text style={styles.shareBtnText}>
-            {sharing ? 'Preparing…' : '📤 Share Receipt'}
+            {sharing ? 'Preparing…' : '📤 Share'}
           </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.pdfBtn}
+          onPress={() => downloadBillPDF(bill, settings)}
+        >
+          <Text style={styles.pdfBtnText}>📥 PDF</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -185,7 +193,7 @@ export default function BillDetailScreen({ route, navigation }) {
             } catch { /* ignore */ }
           }}
         >
-          <Text style={styles.copyBtnText}>📋 Copy</Text>
+          <Text style={styles.copyBtnText}>📋</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -235,10 +243,12 @@ const styles = StyleSheet.create({
   footerText:   { fontSize: 14, color: COLORS.text, fontWeight: '500' },
   footerSub:    { fontSize: 10, color: COLORS.textMuted, marginTop: 6 },
 
-  shareBar:         { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', gap: 10, padding: 12, paddingBottom: 24, backgroundColor: COLORS.white, borderTopWidth: 0.5, borderTopColor: COLORS.border },
+  shareBar:         { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', gap: 8, padding: 12, paddingBottom: 24, backgroundColor: COLORS.white, borderTopWidth: 0.5, borderTopColor: COLORS.border },
   shareBtn:         { flex: 3, backgroundColor: COLORS.primary, borderRadius: 12, padding: 14, alignItems: 'center' },
   shareBtnDisabled: { backgroundColor: COLORS.textMuted },
-  shareBtnText:     { color: '#fff', fontWeight: '700', fontSize: 15 },
+  shareBtnText:     { color: '#fff', fontWeight: '700', fontSize: 14 },
+  pdfBtn:           { flex: 2, backgroundColor: '#4f46e5', borderRadius: 12, padding: 14, alignItems: 'center' },
+  pdfBtnText:       { color: '#fff', fontWeight: '700', fontSize: 14 },
   copyBtn:          { flex: 1, borderWidth: 1, borderColor: COLORS.primary, borderRadius: 12, padding: 14, alignItems: 'center' },
-  copyBtnText:      { color: COLORS.primary, fontWeight: '600', fontSize: 14 },
+  copyBtnText:      { color: COLORS.primary, fontWeight: '600', fontSize: 16 },
 });

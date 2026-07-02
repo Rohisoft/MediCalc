@@ -6,8 +6,8 @@
   "scope": "/medicalc/",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#1a6b3a",
-  "background_color": "#1a6b3a",
+  "theme_color": "#1565C0",
+  "background_color": "#1565C0",
   "categories": ["business", "medical", "productivity"],
   "lang": "en-IN",
   "icons": [

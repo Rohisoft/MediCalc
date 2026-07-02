@@ -11,7 +11,7 @@ const TIER_COLORS = {
   VIP:     { bg: '#EEEDFE', text: '#533AB7' },
   Regular: { bg: '#EAF3DE', text: '#3B6D11' },
 };
-const AVATAR_BG = ['#1a6b3a', '#185FA5', '#854F0B', '#533AB7', '#993556'];
+const AVATAR_BG = ['#1565C0', '#185FA5', '#854F0B', '#533AB7', '#993556'];
 const initials = name => name.split(' ').map(n => n[0]).join('').toUpperCase();
 
 const PAY_METHODS = ['Cash', 'UPI', 'Card'];
