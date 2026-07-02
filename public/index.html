@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+  <!-- ── Primary SEO ─────────────────────────────────────── -->
+  <title>MedicalC — Smart Medical Store Management | VRNDAI</title>
+  <meta name="title"       content="MedicalC — Smart Medical Store Management | VRNDAI" />
+  <meta name="description" content="MedicalC is a cloud-based pharmacy management app. Manage billing, inventory, customers and reports for your medical store — built by VRNDAI Technologies." />
+  <meta name="keywords"    content="pharmacy software, medical store management, billing software, medicine inventory, pharmacy app India, MedicalC, VRNDAI" />
+  <meta name="author"      content="VRNDAI Technologies" />
+  <meta name="robots"      content="index, follow" />
+  <link rel="canonical"    href="https://vrndai.com/" />
+
+  <!-- ── Open Graph (WhatsApp / Facebook previews) ────────── -->
+  <meta property="og:type"        content="website" />
+  <meta property="og:url"         content="https://vrndai.com/" />
+  <meta property="og:title"       content="MedicalC — Smart Medical Store Management" />
+  <meta property="og:description" content="Cloud-based pharmacy management. Billing, inventory, customers & reports. Built by VRNDAI Technologies." />
+  <meta property="og:image"       content="https://vrndai.com/icon-512.png" />
+  <meta property="og:site_name"   content="MedicalC by VRNDAI" />
+  <meta property="og:locale"      content="en_IN" />
+
+  <!-- ── Twitter Card ─────────────────────────────────────── -->
+  <meta name="twitter:card"        content="summary_large_image" />
+  <meta name="twitter:url"         content="https://vrndai.com/" />
+  <meta name="twitter:title"       content="MedicalC — Smart Medical Store Management" />
+  <meta name="twitter:description" content="Cloud-based pharmacy management app by VRNDAI Technologies." />
+  <meta name="twitter:image"       content="https://vrndai.com/icon-512.png" />
+
+  <!-- ── PWA & Mobile ─────────────────────────────────────── -->
+  <meta name="mobile-web-app-capable"            content="yes" />
+  <meta name="apple-mobile-web-app-capable"      content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title"        content="MedicalC" />
+  <meta name="theme-color"                       content="#1a6b3a" />
+  <link rel="manifest"        href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <link rel="icon"            href="/icon-192.png" type="image/png" />
+
+  <!-- ── Structured Data (JSON-LD) ────────────────────────── -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "MedicalC",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web, Android, iOS",
+    "description": "Smart pharmacy management software for medical stores in India",
+    "url": "https://vrndai.com",
+    "author": {
+      "@type": "Organization",
+      "name": "VRNDAI Technologies",
+      "url": "https://vrndai.com"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "299",
+      "priceCurrency": "INR",
+      "description": "Starting at ₹299/month"
+    },
+    "featureList": [
+      "Medicine Inventory Management",
+      "Billing & Receipt Generation",
+      "Customer Management",
+      "Pay Later / Credit Tracking",
+      "Sales Reports",
+      "WhatsApp Bill Sharing"
+    ]
+  }
+  </script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #1a6b3a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    #root { display: flex; min-height: 100vh; max-width: 430px; margin: 0 auto;
+            box-shadow: 0 0 40px rgba(0,0,0,0.2); background: #f9fafb; }
+
+    /* Install banner */
+    #install-banner {
+      display: none; position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%);
+      background: #1a6b3a; color: #fff; border-radius: 12px; padding: 12px 18px;
+      font-size: 13px; z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      align-items: center; gap: 12px; max-width: 380px; width: 90%;
+    }
+    #install-banner.show { display: flex; }
+    #install-banner button {
+      background: #fff; color: #1a6b3a; border: none; border-radius: 8px;
+      padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap;
+    }
+    #install-banner .dismiss { background: transparent; color: rgba(255,255,255,0.7); font-size: 18px; padding: 4px 8px; }
+  </style>
+</head>
+<!-- Tesseract OCR — loaded from CDN so webpack bundling doesn't interfere -->
+<script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js" async></script>
+
+<body>
+  <div id="root"></div>
+
+  <div id="install-banner">
+    <span>📲 Install MedicalC as an app</span>
+    <button id="install-btn">Install</button>
+    <button class="dismiss" id="dismiss-btn">✕</button>
+  </div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('install-banner').classList.add('show');
+    });
+    document.getElementById('install-btn').addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      document.getElementById('install-banner').classList.remove('show');
+    });
+    document.getElementById('dismiss-btn').addEventListener('click', () => {
+      document.getElementById('install-banner').classList.remove('show');
+    });
+    window.addEventListener('appinstalled', () => {
+      document.getElementById('install-banner').classList.remove('show');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MedicalC User Guide — VRNDAI Technologies</title>
+  <meta name="description" content="How to use MedicalC pharmacy management app — billing, inventory, customers and reports guide by VRNDAI Technologies." />
+  <meta name="author" content="VRNDAI Technologies" />
+  <link rel="canonical" href="https://vrndai.com/guide" />
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0fdf4;color:#1f2937}
+    .header{background:#1a6b3a;color:#fff;padding:32px 24px;text-align:center}
+    .header h1{font-size:28px;font-weight:700;margin-bottom:6px}
+    .header p{font-size:14px;opacity:.8}
+    .toc{background:#fff;max-width:700px;margin:24px auto;border-radius:16px;padding:20px 24px;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+    .toc h2{font-size:15px;font-weight:700;color:#1a6b3a;margin-bottom:12px}
+    .toc ol{padding-left:20px;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+    .toc li{font-size:13px;color:#374151}
+    .toc a{color:#1a6b3a;text-decoration:none;font-weight:500}
+    .section{max-width:700px;margin:0 auto 32px;padding:0 16px}
+    .section-card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+    .section-header{background:#1a6b3a;color:#fff;padding:16px 20px;display:flex;align-items:center;gap:12px}
+    .section-header .num{background:rgba(255,255,255,.25);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0}
+    .section-header h2{font-size:17px;font-weight:700}
+    .section-body{padding:20px}
+    .step{display:flex;gap:14px;margin-bottom:20px}
+    .step:last-child{margin-bottom:0}
+    .step-num{background:#1a6b3a;color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:2px}
+    .step-content h3{font-size:14px;font-weight:700;color:#1f2937;margin-bottom:4px}
+    .step-content p{font-size:13px;color:#6b7280;line-height:1.5}
+    .mockup{background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:12px;padding:12px;margin-top:10px;font-size:12px}
+    .mockup-bar{background:#1a6b3a;color:#fff;border-radius:8px 8px 0 0;padding:8px 12px;margin:-12px -12px 10px;font-size:12px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+    .btn-mock{display:inline-block;background:#1a6b3a;color:#fff;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:600;margin:4px 2px}
+    .btn-mock.outline{background:#fff;color:#1a6b3a;border:1.5px solid #1a6b3a}
+    .btn-mock.red{background:#ef4444}
+    .btn-mock.orange{background:#f59e0b}
+    .chip{display:inline-block;background:#f0fdf4;color:#1a6b3a;border:1px solid #bbf7d0;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;margin:2px}
+    .chip.active{background:#1a6b3a;color:#fff}
+    .row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f3f4f6;font-size:12px}
+    .row:last-child{border-bottom:none}
+    .badge{display:inline-block;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700}
+    .badge.green{background:#d1fae5;color:#065f46}
+    .badge.red{background:#fee2e2;color:#991b1b}
+    .badge.yellow{background:#fef3c7;color:#92400e}
+    .tab-bar{display:flex;justify-content:space-around;background:#fff;border-top:1px solid #e5e7eb;padding:8px 0;border-radius:0 0 8px 8px;margin-top:10px}
+    .tab{text-align:center;font-size:10px;color:#9ca3af}
+    .tab.active{color:#1a6b3a;font-weight:600}
+    .tip{background:#fef3c7;border-left:3px solid #f59e0b;padding:10px 14px;border-radius:0 8px 8px 0;margin-top:12px;font-size:12px;color:#92400e;line-height:1.5}
+    .tip strong{display:block;margin-bottom:2px}
+    .input-mock{border:1.5px solid #d1d5db;border-radius:8px;padding:7px 10px;font-size:12px;color:#9ca3af;margin:4px 0;background:#fff}
+    .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+    .stat-box{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:10px;text-align:center}
+    .stat-box .val{font-size:20px;font-weight:700;color:#1f2937}
+    .stat-box .lbl{font-size:10px;color:#9ca3af;margin-top:2px}
+    .footer{background:#1a6b3a;color:rgba(255,255,255,.7);text-align:center;padding:20px;font-size:12px;margin-top:32px}
+    .med-card{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:10px;margin-bottom:6px}
+    .med-icon{width:36px;height:36px;background:#EAF3DE;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+    .med-info{flex:1}
+    .med-name{font-size:12px;font-weight:600;color:#1f2937}
+    .med-cat{font-size:10px;color:#9ca3af}
+    .med-stock{font-size:11px;font-weight:700;color:#1a6b3a}
+    .add-btn{background:#1a6b3a;color:#fff;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700}
+    .qty-ctrl{display:flex;align-items:center;gap:6px;background:#EAF3DE;border-radius:8px;padding:3px 6px}
+    .qty-btn{width:20px;height:20px;background:#1a6b3a;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+    .cart-bar{background:#1a6b3a;color:#fff;border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+    .stock-card{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:10px;margin-bottom:6px}
+    .stock-num{font-size:22px;font-weight:800;line-height:1}
+    @media(max-width:480px){.toc ol{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>💊 MedicalC — User Guide</h1>
+  <p>Step-by-step guide for using your medical store app</p>
+</div>
+
+<div class="toc">
+  <h2>📋 What's in this guide</h2>
+  <ol>
+    <li><a href="#login">Logging In</a></li>
+    <li><a href="#dashboard">Dashboard</a></li>
+    <li><a href="#stock">Add Stock (Inventory)</a></li>
+    <li><a href="#billing">Creating a Bill</a></li>
+    <li><a href="#customers">Managing Customers</a></li>
+    <li><a href="#paylater">Pay Later / Due</a></li>
+    <li><a href="#share">Sharing a Bill</a></li>
+    <li><a href="#reports">Viewing Reports</a></li>
+  </ol>
+</div>
+
+<!-- 1. LOGIN -->
+<div class="section" id="login">
+  <div class="section-card">
+    <div class="section-header"><div class="num">1</div><h2>Logging In</h2></div>
+    <div class="section-body">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Open the app</h3>
+          <p>Open <strong>https://dist-sandy-two-27.vercel.app</strong> in Chrome on your phone or computer.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>Enter your credentials</h3>
+          <p>Type your email address and password. These were provided when your account was set up.</p>
+          <div class="mockup">
+            <div class="mockup-bar"><span>💊 MedicalC</span></div>
+            <div class="input-mock">your@email.com</div>
+            <div class="input-mock">••••••••</div>
+            <div style="text-align:center;margin-top:8px"><span class="btn-mock">Sign in  →</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>You're in!</h3>
+          <p>You'll land on the Dashboard showing today's sales, stock alerts, and quick action buttons.</p>
+        </div>
+      </div>
+      <div class="tip"><strong>💡 Install as app</strong>On Android/iPhone: tap the browser menu → "Add to Home Screen" to install MedicalC like a native app with an icon on your home screen.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. DASHBOARD -->
+<div class="section" id="dashboard">
+  <div class="section-card">
+    <div class="section-header"><div class="num">2</div><h2>Dashboard — Home Screen</h2></div>
+    <div class="section-body">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Today's summary at a glance</h3>
+          <p>The dashboard shows live store stats — sales, bills, low stock count, and expiring medicines.</p>
+          <div class="mockup">
+            <div class="mockup-bar"><span>💊 Sahdev Medical Center</span><span style="font-size:16px">⏻</span></div>
+            <div style="background:#1a6b3a;color:#fff;padding:10px;border-radius:6px;margin-bottom:8px;font-size:12px">
+              Good morning, <strong>Milan Roy 👋</strong>
+            </div>
+            <div class="stat-grid">
+              <div class="stat-box"><div class="val">₹2,450</div><div class="lbl">Today's Sales</div></div>
+              <div class="stat-box"><div class="val">8</div><div class="lbl">Bills Today</div></div>
+              <div class="stat-box"><div class="val" style="color:#f59e0b">3</div><div class="lbl">Low Stock</div></div>
+              <div class="stat-box"><div class="val" style="color:#ef4444">1</div><div class="lbl">Expiring Soon</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>Alerts section</h3>
+          <p>Below the stats, warnings appear for low stock, expiring medicines, and pending customer dues. Check these daily.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>Bottom navigation — 5 tabs</h3>
+          <p>Always visible at the bottom. Tap any tab to switch screens instantly.</p>
+          <div class="mockup">
+            <div class="tab-bar">
+              <div class="tab active">🏠<br/>Home</div>
+              <div class="tab">📦<br/>Add Stock</div>
+              <div class="tab">🧾<br/>New Bill</div>
+              <div class="tab">👥<br/>Customers</div>
+              <div class="tab">📊<br/>Reports</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h3>Logout button</h3>
+          <p>Tap the <strong>⏻</strong> icon in the top-right corner of the Home screen to sign out.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. ADD STOCK -->
+<div class="section" id="stock">
+  <div class="section-card">
+    <div class="section-header"><div class="num">3</div><h2>📦 Add Stock — Managing Inventory</h2></div>
+    <div class="section-body">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Open Add Stock tab</h3>
+          <p>Tap 📦 <strong>Add Stock</strong> in the bottom navigation. This screen is only for managing your medicine stock — not for billing.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>See stock at a glance</h3>
+          <p>Each medicine card shows the <strong>quantity in bold</strong> (red = out/expiring, yellow = low, green = ok) and the <strong>expiry date</strong> in colour.</p>
+          <div class="mockup">
+            <div class="mockup-bar"><span>📦 Add Stock</span><span style="background:rgba(255,255,255,.25);border-radius:12px;padding:3px 10px;font-size:11px">+ Add New</span></div>
+            <div style="background:#FEF2F2;border-radius:8px;padding:6px 10px;margin-bottom:6px;font-size:11px;display:flex;gap:8px">
+              <span>🚫 2 Out of stock</span><span>⚠ 3 Low stock</span><span>📅 1 Expiring soon</span>
+            </div>
+            <div class="stock-card">
+              <div class="med-icon">💊</div>
+              <div style="flex:1"><div class="med-name">Paracetamol 500mg</div><div class="med-cat">Analgesic · Strip</div></div>
+              <div style="text-align:center;margin:0 8px"><div class="stock-num" style="color:#1a6b3a">45</div><div style="font-size:8px;color:#9ca3af">IN STOCK</div></div>
+              <div style="text-align:center"><div style="font-size:12px;font-weight:600;color:#1a6b3a">Dec 2027</div><div style="font-size:8px;color:#9ca3af">EXPIRY</div></div>
+              <span style="margin-left:6px">✏️</span>
+            </div>
+            <div class="stock-card">
+              <div class="med-icon">💊</div>
+              <div style="flex:1"><div class="med-name">Azithromycin 250mg</div><div class="med-cat">Antibiotic · Strip</div></div>
+              <div style="text-align:center;margin:0 8px"><div class="stock-num" style="color:#f59e0b">6</div><div style="font-size:8px;color:#9ca3af">LOW</div></div>
+              <div style="text-align:center"><div style="font-size:12px;font-weight:600;color:#ef4444">Mar 2025</div><div style="font-size:8px;color:#9ca3af">EXPIRY</div></div>
+              <span style="margin-left:6px">✏️</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>Update stock quantity</h3>
+          <p>Tap any medicine card → a popup appears showing the current stock → enter the new quantity → tap <strong>"Update Stock"</strong>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h3>Add a new medicine</h3>
+          <p>Tap <strong>"+ Add New"</strong> in the top-right → fill in Name, Category, Price, Stock Quantity, Unit, and Expiry date → tap <strong>"Save Medicine"</strong>.</p>
+        </div>
+      </div>
+      <div class="tip"><strong>⚠️ Stock alerts</strong>Below 10 units = yellow (Low). Zero units = red (Out of Stock). Expiry within 90 days = orange warning. Expired = red. These also appear on your Dashboard alerts.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. BILLING -->
+<div class="section" id="billing">
+  <div class="section-card">
+    <div class="section-header"><div class="num">4</div><h2>🧾 New Bill — Creating a Sale</h2></div>
+    <div class="section-body">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Open New Bill tab</h3>
+          <p>Tap 🧾 <strong>New Bill</strong> in the bottom navigation. You'll see your full medicine list — ready to browse and add to the bill.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>Browse or search medicines</h3>
+          <p>Scroll through the list or use the search bar at the top. Filter by category using the chips (Analgesic, Antibiotic, etc.).</p>
+          <div class="mockup">
+            <div class="mockup-bar"><span>🧾 New Bill</span><span>📋 History</span></div>
+            <div class="input-mock">🔍  Search medicine to add…</div>
+            <div style="display:flex;gap:6px;margin:8px 0;flex-wrap:wrap">
+              <span class="chip active">All</span><span class="chip">Analgesic</span><span class="chip">Antibiotic</span><span class="chip">Vitamin</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>Tap "+ Add" to add a medicine</h3>
+          <p>Each medicine shows its price and stock. Tap the green <strong>"+ Add"</strong> button. Once added, you'll see − qty + controls directly on the card to adjust quantity.</p>
+          <div class="mockup">
+            <div class="med-card">
+              <div class="med-icon">💊</div>
+              <div class="med-info"><div class="med-name">Paracetamol 500mg</div><div class="med-cat">Analgesic · Strip</div><div class="med-stock">45 in stock</div></div>
+              <div style="text-align:right"><div style="font-size:14px;font-weight:700;color:#1f2937;margin-bottom:4px">₹12</div><span class="add-btn">+ Add</span></div>
+            </div>
+            <div class="med-card">
+              <div class="med-icon">💊</div>
+              <div class="med-info"><div class="med-name">Azithromycin 250mg</div><div class="med-cat">Antibiotic · Strip</div><div class="med-stock" style="color:#f59e0b">⚠ 6 left</div></div>
+              <div style="text-align:right"><div style="font-size:14px;font-weight:700;color:#1f2937;margin-bottom:4px">₹85</div>
+                <div class="qty-ctrl"><div class="qty-btn">−</div><span style="font-size:13px;font-weight:700;color:#1a6b3a;padding:0 4px">2</span><div class="qty-btn">+</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h3>Tap the green bar at the bottom</h3>
+          <p>Once you've added medicines, a green bar appears at the bottom showing the item count and total. Tap it to open the bill review screen.</p>
+          <div class="mockup">
+            <div class="cart-bar">
+              <div><div style="font-weight:700;font-size:13px">3 items in bill</div><div style="font-size:11px;opacity:.7">Paracetamol, Azithromycin…</div></div>
+              <div style="text-align:right"><div style="font-size:18px;font-weight:800">₹194</div><div style="font-size:11px;opacity:.8">Review &amp; Pay →</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <h3>Review, select payment, complete</h3>
+          <p>In the review screen: optionally select a customer, choose payment method (Cash / UPI / Card / Pay Later), then tap <strong>"Complete Bill"</strong>. Stock reduces automatically.</p>
+          <div class="mockup">
+            <div style="font-size:11px;font-weight:600;color:#6b7280;margin-bottom:6px">PAYMENT</div>
+            <span class="chip active">Cash 💵</span>
+            <span class="chip">UPI 📱</span>
+            <span class="chip">Card 💳</span>
+            <span class="chip">Pay Later 📒</span>
+            <div style="text-align:center;margin-top:10px"><span class="btn-mock" style="padding:10px 24px;font-size:13px">✓ Complete Bill — ₹194</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="tip"><strong>📋 Bill History</strong>Tap "📋 History" at the top right of the New Bill screen to see all past bills grouped by date. Tap any bill to open the full receipt and share it with the customer.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 5. CUSTOMERS -->
+<div class="section" id="customers">
+  <div class="section-card">
+    <div class="section-header"><div class="num">5</div><h2>Customers — Managing Regulars</h2></div>
+    <div class="section-body">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Open Customers tab</h3>
+          <p>Tap 👥 <strong>Customers</strong> in the bottom navigation.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>Add a new customer</h3>
+          <p>Tap <strong>"+ Add Customer"</strong> → enter Name and Phone number → Save.</p>
+          <div class="mockup">
+            <div class="mockup-bar"><span>👥 Customers</span><span style="background:rgba(255,255,255,.25);border-radius:6px;padding:2px 10px">+ Add</span></div>
+            <div class="row"><span><strong>Rajesh Kumar</strong> <span class="badge" style="background:#fef3c7;color:#92400e">₹450 due</span></span><span style="color:#9ca3af">›</span></div>
+            <div class="row"><span><strong>Priya Sharma</strong> <span class="badge" style="background:#d1fae5;color:#065f46">Gold</span></span><span style="color:#9ca3af">›</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>View customer profile</h3>
+          <p>Tap any customer to see their total purchases, loyalty points, current due balance, and payment history.</p>
+        </div>
+      </div>
+      <div class="tip"><strong>⭐ Loyalty Tiers</strong>Customers auto-upgrade: Regular → Gold (50+ purchases) → VIP (100+ purchases). They earn 1 point for every ₹10 spent.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 6. PAY LATER -->
+<div class="section" id="paylater">
+  <div class="section-card">
+    <div class="section-header"><div class="num">6</div><h2>Pay Later / Due Amount</h2></div>
+    <div class="section-body">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Create a Pay Later bill</h3>
+          <p>In the New Bill screen, add medicines → tap the green cart bar → in the review screen select <strong>"Pay Later 📒"</strong> as payment method.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>Select the customer</h3>
+          <p>Tap the <strong>👤 Customer</strong> row in the review screen and select who will pay later. A customer must be selected for Pay Later bills.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>Complete the bill</h3>
+          <p>The bill amount is added to the customer's <strong>Due balance</strong> shown as a red badge on their customer card.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h3>Collect payment when they return</h3>
+          <p>Go to <strong>Customers tab</strong> → tap their name → tap <strong>"Collect Payment"</strong> → enter amount → confirm.</p>
+          <div class="mockup">
+            <div style="background:#fee2e2;border-radius:8px;padding:10px;text-align:center;font-size:13px;margin-bottom:8px">
+              <strong style="color:#991b1b">Due Balance: ₹850</strong>
+            </div>
+            <span class="btn-mock" style="width:100%;display:block;text-align:center">💰 Collect Payment</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 7. SHARE BILL -->
+<div class="section" id="share">
+  <div class="section-card">
+    <div class="section-header"><div class="num">7</div><h2>Sharing a Bill to Customer</h2></div>
+    <div class="section-body">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Open Bill History</h3>
+          <p>In the New Bill screen, tap <strong>"📋 History"</strong> at the top right.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>Tap a bill to open the receipt</h3>
+          <p>You'll see the full receipt with all items, totals, GST, and your shop details.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>Tap "📤 Share Receipt"</h3>
+          <p>A formatted receipt text is generated. On Android/iPhone, tap WhatsApp to send it directly to the customer.</p>
+          <div class="mockup">
+            <div style="font-size:11px;font-family:monospace;line-height:1.6;color:#374151">
+              💊 SAHDEV MEDICAL CENTER<br/>
+              Khachroad Road, Ratlam<br/>
+              ━━━━━━━━━━━━━━━━━━━━<br/>
+              Bill #A1B2C3 · 25 Jun 2026<br/>
+              ━━━━━━━━━━━━━━━━━━━━<br/>
+              Paracetamol 500mg ×2 = ₹24<br/>
+              Azithromycin 250mg ×1 = ₹85<br/>
+              ━━━━━━━━━━━━━━━━━━━━<br/>
+              Total: <strong>₹114</strong> · Cash ✅<br/>
+              <em>Powered by VRNDAI · vrndai.com</em>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 8. REPORTS -->
+<div class="section" id="reports">
+  <div class="section-card">
+    <div class="section-header"><div class="num">8</div><h2>Reports — Sales Summary</h2></div>
+    <div class="section-body">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Open Reports tab</h3>
+          <p>Tap 📊 <strong>Reports</strong> in the bottom navigation.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>Filter by time period</h3>
+          <p>Tap one of the chips to filter: <strong>Today</strong>, This Week, This Month, or All Time.</p>
+          <div class="mockup">
+            <span class="chip active">Today</span>
+            <span class="chip">This Week</span>
+            <span class="chip">This Month</span>
+            <span class="chip">All Time</span>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>What you'll see</h3>
+          <p>Total revenue, number of bills, top-selling medicines, payment method breakdown (Cash / UPI / Card / Pay Later), and GST collected.</p>
+        </div>
+      </div>
+      <div class="tip"><strong>📊 Use reports daily</strong>Check "Today" every evening to see total sales and which medicines moved the most. Use "This Month" at month-end to calculate total earnings and GST.</div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <p>MedicalC · Powered by <strong style="color:#fff">VRNDAI Technologies</strong></p>
+  <p style="margin-top:4px"><a href="https://vrndai.com" style="color:rgba(255,255,255,.8)">vrndai.com</a> · For support contact Samrath Panchal · 8878069736</p>
+</div>
+
+</body>
+</html>
