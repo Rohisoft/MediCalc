@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View, Text, Modal, TouchableOpacity, ScrollView,
   StyleSheet, ActivityIndicator, TextInput, SafeAreaView,
@@ -118,7 +118,6 @@ export default function ScanBillModal({ visible, onClose, medicines, onConfirm }
   const [rawText,  setRawText]  = useState('');
   const [showRaw,  setShowRaw]  = useState(false);
   const [error,    setError]    = useState('');
-  const fileRef = useRef(null);
 
   const reset = () => {
     setStage('pick'); setPreview(null); setItems([]);
@@ -180,12 +179,25 @@ export default function ScanBillModal({ visible, onClose, medicines, onConfirm }
 
   const included = items.filter(x => x.included).length;
 
+  const isWeb = typeof document !== 'undefined';
+
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={handleClose}>
-      {typeof document !== 'undefined' && (
-        <input ref={fileRef} type="file" accept="image/*"
-          style={{ display: 'none' }}
-          onChange={e => processFile(e.target.files[0])} />
+      {isWeb && (
+        <>
+          {/* Two separate inputs (camera vs gallery) so each can be wired to its
+              own <label>. Labels open their file input natively on click — no
+              JS .click() call involved, which mobile Safari/Chrome silently
+              block when triggered from a React Native Web touch handler
+              (the tap loses "direct user gesture" status by the time onPress
+              fires), i.e. the exact "nothing happens when tapped" symptom. */}
+          <input id="scan-camera-input" type="file" accept="image/*" capture="environment"
+            style={{ display: 'none' }}
+            onChange={e => processFile(e.target.files[0])} />
+          <input id="scan-gallery-input" type="file" accept="image/*"
+            style={{ display: 'none' }}
+            onChange={e => processFile(e.target.files[0])} />
+        </>
       )}
 
       <SafeAreaView style={s.safe}>
@@ -207,17 +219,20 @@ export default function ScanBillModal({ visible, onClose, medicines, onConfirm }
               </View>
             )}
 
-            <TouchableOpacity style={s.btnPrimary} onPress={() => {
-              if (fileRef.current) { fileRef.current.setAttribute('capture', 'environment'); fileRef.current.click(); }
-            }}>
-              <Text style={s.btnPrimaryText}>📷  Open Camera</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={s.btnOutline} onPress={() => {
-              if (fileRef.current) { fileRef.current.removeAttribute('capture'); fileRef.current.click(); }
-            }}>
-              <Text style={s.btnOutlineText}>🖼️  Upload from Gallery / Files</Text>
-            </TouchableOpacity>
+            {isWeb ? (
+              <>
+                <label htmlFor="scan-camera-input" style={s.btnPrimary}>
+                  <span style={s.btnPrimaryText}>📷  Open Camera</span>
+                </label>
+                <label htmlFor="scan-gallery-input" style={s.btnOutline}>
+                  <span style={s.btnOutlineText}>🖼️  Upload from Gallery / Files</span>
+                </label>
+              </>
+            ) : (
+              <View style={s.errorBox}>
+                <Text style={s.errorText}>⚠️  Bill scanning is available in the web app for now.</Text>
+              </View>
+            )}
 
             <View style={s.freePill}>
               <Text style={s.freePillText}>✅  Free · No API key · Runs on your device</Text>
