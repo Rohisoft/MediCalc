@@ -5,6 +5,8 @@ import {
 } from 'react-native';
 import { COLORS } from '../data/medicines';
 import { fuzzyMatch } from '../utils/fuzzyMatch';
+import { resizeImage } from '../utils/resizeImage';
+import { supabase } from '../lib/supabase';
 
 // ─── OCR via window.Tesseract (loaded from CDN in index.html) ──
 async function runOCR(dataUrl, onStatus, onProgress) {
@@ -95,6 +97,30 @@ function detectPrice(tokens, fromIndex) {
   return null;
 }
 
+// ─── AI Deep Scan via /api/parse-bill-image ────────────────────
+async function runAIScan(dataUrl, onStatus) {
+  onStatus('Resizing image…');
+  const resized = await resizeImage(dataUrl);
+  const [header, base64] = resized.split(',');
+  const mediaType = header.match(/data:(.*);base64/)?.[1] || 'image/jpeg';
+
+  onStatus('Analyzing bill with AI…');
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch('/api/parse-bill-image', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session?.access_token || ''}`,
+    },
+    body: JSON.stringify({ imageBase64: base64, mediaType }),
+  });
+  const json = await res.json();
+  if (!res.ok || json.error) {
+    throw new Error(json.error || 'Deep Scan failed. Try again.');
+  }
+  return json.items || [];
+}
+
 function parseBillText(raw) {
   const results = [];
   const seen = new Set();
@@ -143,6 +169,7 @@ export default function ScanBillModal({ visible, onClose, medicines, onConfirm }
   const [rawText,  setRawText]  = useState('');
   const [showRaw,  setShowRaw]  = useState(false);
   const [error,    setError]    = useState('');
+  const [useAI,    setUseAI]    = useState(false);
 
   const reset = () => {
     setStage('pick'); setPreview(null); setItems([]);
@@ -162,21 +189,33 @@ export default function ScanBillModal({ visible, onClose, medicines, onConfirm }
       setStatusMsg('Starting…');
 
       try {
-        const raw = await runOCR(
-          dataUrl,
-          (msg) => setStatusMsg(msg),
-          (pct) => setProgress(pct),
-        );
+        let mapped;
+        if (useAI) {
+          const extracted = await runAIScan(dataUrl, (msg) => setStatusMsg(msg));
+          setRawText('');
+          mapped = extracted.map((e, i) => ({
+            id: i, name: e.name, qty: String(e.qty), unit: e.unit || 'Strip',
+            price: e.price != null ? String(e.price) : '',
+            expiry: e.expiry || '',
+            match: fuzzyMatch(e.name, medicines), included: true,
+          }));
+        } else {
+          const raw = await runOCR(
+            dataUrl,
+            (msg) => setStatusMsg(msg),
+            (pct) => setProgress(pct),
+          );
 
-        setRawText(raw || '');
-        const extracted = parseBillText(raw || '');
+          setRawText(raw || '');
+          const extracted = parseBillText(raw || '');
 
-        const mapped = extracted.map((e, i) => ({
-          id: i, name: e.name, qty: String(e.qty), unit: e.unit,
-          price: e.price != null ? String(e.price) : '',
-          expiry: e.expiry || '',
-          match: fuzzyMatch(e.name, medicines), included: true,
-        }));
+          mapped = extracted.map((e, i) => ({
+            id: i, name: e.name, qty: String(e.qty), unit: e.unit,
+            price: e.price != null ? String(e.price) : '',
+            expiry: e.expiry || '',
+            match: fuzzyMatch(e.name, medicines), included: true,
+          }));
+        }
 
         setItems(mapped);
         setStage('review');  // always reach review — even if 0 items
@@ -261,8 +300,15 @@ export default function ScanBillModal({ visible, onClose, medicines, onConfirm }
               </View>
             )}
 
-            <View style={s.freePill}>
-              <Text style={s.freePillText}>✅  Free · No API key · Runs on your device</Text>
+            <TouchableOpacity style={s.aiToggleRow} onPress={() => setUseAI(v => !v)}>
+              <Text style={{ fontSize: 18 }}>{useAI ? '☑️' : '⬜'}</Text>
+              <Text style={s.aiToggleText}>✨ Use AI Deep Scan (higher accuracy)</Text>
+            </TouchableOpacity>
+
+            <View style={[s.freePill, useAI && s.aiPill]}>
+              <Text style={[s.freePillText, useAI && s.aiPillText]}>
+                {useAI ? '✨  AI Deep Scan · ~₹1 per scan' : '✅  Free · No API key · Runs on your device'}
+              </Text>
             </View>
           </View>
         )}
@@ -277,11 +323,15 @@ export default function ScanBillModal({ visible, onClose, medicines, onConfirm }
             <ActivityIndicator size="large" color={COLORS.primary} />
             <Text style={s.processingTitle}>{statusMsg || 'Processing…'}</Text>
             <Text style={s.processingSub}>
-              {progress > 0 ? `${progress}% complete` : 'First time loads OCR engine (~5 sec)'}
+              {useAI
+                ? 'Usually takes a few seconds'
+                : (progress > 0 ? `${progress}% complete` : 'First time loads OCR engine (~5 sec)')}
             </Text>
-            <View style={s.bar}>
-              <View style={[s.barFill, { width: `${Math.max(progress, 5)}%` }]} />
-            </View>
+            {!useAI && (
+              <View style={s.bar}>
+                <View style={[s.barFill, { width: `${Math.max(progress, 5)}%` }]} />
+              </View>
+            )}
             <Text style={{ fontSize: 11, color: '#9ca3af', marginTop: 12 }}>
               Do not close this screen
             </Text>
@@ -439,8 +489,12 @@ const s = StyleSheet.create({
   btnOutline:     { width: '100%', borderWidth: 1.5, borderColor: COLORS.primary, borderRadius: 12,
                     padding: 14, alignItems: 'center', marginBottom: 20 },
   btnOutlineText: { color: COLORS.primary, fontSize: 15, fontWeight: '600' },
+  aiToggleRow:    { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
+  aiToggleText:   { fontSize: 13, color: '#374151', fontWeight: '500' },
   freePill:       { backgroundColor: '#EFF8FF', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 7 },
   freePillText:   { fontSize: 11, color: '#1565C0', fontWeight: '500' },
+  aiPill:         { backgroundColor: '#FBEFFF' },
+  aiPillText:     { color: '#9333EA' },
 
   processingTitle: { fontSize: 16, fontWeight: '600', color: '#111', marginTop: 18 },
   processingSub:   { fontSize: 13, color: '#6b7280', marginTop: 4, marginBottom: 14 },
