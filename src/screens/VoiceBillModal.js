@@ -37,13 +37,17 @@ export default function VoiceBillModal({ visible, onClose, medicines, onConfirm 
   const [items,    setItems]    = useState([]);
   const [error,    setError]    = useState('');
   const [useAI,    setUseAI]    = useState(false);
-  const recognitionRef = useRef(null);
+  const recognitionRef     = useRef(null);
+  const manualStopRef      = useRef(false);
+  const finalTranscriptRef = useRef('');
+  const appendModeRef      = useRef(false); // true when "Add more" is used from the review screen
 
   const reset = () => {
     setStage('idle'); setLiveText(''); setFinalText('');
     setItems([]); setError('');
   };
   const handleClose = () => {
+    manualStopRef.current = true;
     if (recognitionRef.current) { try { recognitionRef.current.stop(); } catch (e) {} }
     reset(); onClose();
   };
@@ -61,70 +65,106 @@ export default function VoiceBillModal({ visible, onClose, medicines, onConfirm 
       } else {
         parsed = parseVoiceText(text, medicines).map((r) => ({ ...r, qty: String(r.qty), included: true }));
       }
-      setItems(parsed);
+      if (appendModeRef.current) {
+        setItems(prev => {
+          const nextId = prev.reduce((m, x) => Math.max(m, x.id), -1) + 1;
+          return [...prev, ...parsed.map((p, i) => ({ ...p, id: nextId + i }))];
+        });
+      } else {
+        setItems(parsed);
+      }
       setStage('review');
     } catch (err) {
       setError(String(err.message || err));
-      setStage('idle');
+      setStage(appendModeRef.current ? 'review' : 'idle');
     }
   };
 
-  const startListening = () => {
+  // Builds a fresh recognizer wired to accumulate into finalTranscriptRef,
+  // which survives across restarts (unlike a local closure variable) —
+  // needed because `continuous: true` alone doesn't stop most browsers
+  // (esp. mobile Chrome) from firing `onend` after a few seconds of
+  // silence. Restarting transparently on that unintended end is what
+  // actually makes multi-item speech feel continuous to the user.
+  const createRecognition = () => {
+    const recognition = new SpeechRecognitionAPI();
+    recognition.lang = 'en-IN';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    recognition.onresult = (event) => {
+      let interim = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const t = event.results[i][0].transcript;
+        if (event.results[i].isFinal) finalTranscriptRef.current += t + ' ';
+        else interim += t;
+      }
+      setLiveText(interim);
+      setFinalText(finalTranscriptRef.current.trim());
+    };
+
+    recognition.onerror = (event) => {
+      // 'no-speech' / 'aborted' happen routinely between phrases in
+      // continuous mode — onend fires right after and decides whether to
+      // restart or finalize, so they're not treated as fatal here.
+      if (event.error === 'not-allowed') {
+        manualStopRef.current = true;
+        setError('Microphone access denied. Allow mic access in your browser settings.');
+        setStage('idle');
+      }
+    };
+
+    recognition.onend = () => {
+      if (manualStopRef.current) {
+        recognitionRef.current = null;
+        const text = finalTranscriptRef.current.trim();
+        if (text) {
+          processTranscript(text);
+        } else if (appendModeRef.current) {
+          setStage('review'); // nothing new heard — keep the existing reviewed items
+        } else {
+          setError("Didn't catch anything — try again.");
+          setStage('idle');
+        }
+        return;
+      }
+      try {
+        const fresh = createRecognition();
+        recognitionRef.current = fresh;
+        fresh.start();
+      } catch (e) {
+        setError('Voice recognition stopped unexpectedly. Try again.');
+        setStage('idle');
+      }
+    };
+
+    return recognition;
+  };
+
+  const startListening = (append = false) => {
     setError('');
     if (!SpeechRecognitionAPI) {
       setError('Voice input is not supported in this browser. Try Chrome or Edge.');
       return;
     }
-    const recognition = new SpeechRecognitionAPI();
-    recognition.lang = 'en-IN';
-    // Continuous: keeps listening across pauses so multiple items can be
-    // said in one session ("2 strips paracetamol… 1 cough syrup…") instead
-    // of stopping after the first pause — ends only on manual Stop or a
-    // browser-side silence timeout (handled gracefully by onend either way).
-    recognition.continuous = true;
-    recognition.interimResults = true;
-
-    let finalTranscript = '';
-    recognition.onresult = (event) => {
-      let interim = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const t = event.results[i][0].transcript;
-        if (event.results[i].isFinal) finalTranscript += t + ' ';
-        else interim += t;
-      }
-      setLiveText(interim);
-      if (finalTranscript) setFinalText(finalTranscript.trim());
-    };
-    recognition.onerror = (event) => {
-      if (event.error === 'no-speech') {
-        setError("Didn't catch that — try again, speak clearly.");
-      } else if (event.error === 'not-allowed') {
-        setError('Microphone access denied. Allow mic access in your browser settings.');
-      } else {
-        setError('Voice recognition error: ' + event.error);
-      }
-      setStage('idle');
-    };
-    recognition.onend = () => {
-      recognitionRef.current = null;
-      if (finalTranscript.trim()) {
-        processTranscript(finalTranscript.trim());
-      } else {
-        setError("Didn't catch anything — try again.");
-        setStage('idle');
-      }
-    };
-
-    recognitionRef.current = recognition;
-    setStage('listening');
+    appendModeRef.current = append;
+    manualStopRef.current = false;
+    finalTranscriptRef.current = '';
     setLiveText(''); setFinalText('');
+    setStage('listening');
+
+    const recognition = createRecognition();
+    recognitionRef.current = recognition;
     // Called synchronously inside this tap handler — Chrome/Safari require a
     // direct user gesture to grant microphone access, same constraint that
-    // affects the file-picker buttons in ScanBillModal.
+    // affects the file-picker buttons in ScanBillModal. Later automatic
+    // restarts (above) don't need a fresh gesture — once granted, mic
+    // permission persists for the origin.
     recognition.start();
   };
 
   const stopListening = () => {
+    manualStopRef.current = true;
     if (recognitionRef.current) { try { recognitionRef.current.stop(); } catch (e) {} }
   };
 
@@ -167,7 +207,7 @@ export default function VoiceBillModal({ visible, onClose, medicines, onConfirm 
             )}
 
             {stage === 'idle' ? (
-              <TouchableOpacity style={s.micBtn} onPress={startListening}>
+              <TouchableOpacity style={s.micBtn} onPress={() => startListening(false)}>
                 <Text style={s.micBtnText}>🎙️  Tap to Speak</Text>
               </TouchableOpacity>
             ) : (
@@ -206,10 +246,19 @@ export default function VoiceBillModal({ visible, onClose, medicines, onConfirm 
                 </Text>
                 <Text style={s.reviewSub} numberOfLines={1}>"{finalText}"</Text>
               </View>
+              <TouchableOpacity onPress={() => startListening(true)} style={{ marginRight: 14 }}>
+                <Text style={s.addMoreBtn}>🎙️ Add more</Text>
+              </TouchableOpacity>
               <TouchableOpacity onPress={reset}>
-                <Text style={s.rescanBtn}>Try Again</Text>
+                <Text style={s.rescanBtn}>Start Over</Text>
               </TouchableOpacity>
             </View>
+
+            {!!error && (
+              <View style={[s.errorBox, { marginHorizontal: 12, marginTop: 10, marginBottom: 0 }]}>
+                <Text style={s.errorText}>⚠️  {error}</Text>
+              </View>
+            )}
 
             <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 12, paddingBottom: 16 }}>
               {items.length === 0 && (
@@ -324,6 +373,7 @@ const s = StyleSheet.create({
   reviewTitle:    { fontSize: 14, fontWeight: '700', color: '#111' },
   reviewSub:      { fontSize: 12, color: '#6b7280', marginTop: 2 },
   rescanBtn:      { color: COLORS.primary, fontSize: 13, fontWeight: '600' },
+  addMoreBtn:     { color: '#059669', fontSize: 13, fontWeight: '600' },
 
   emptyHint:      { backgroundColor: '#fffbeb', borderRadius: 10, padding: 14, marginBottom: 12 },
   emptyHintText:  { fontSize: 13, color: '#92400e', lineHeight: 20, textAlign: 'center' },
