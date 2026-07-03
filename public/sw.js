@@ -1,4 +1,4 @@
-const CACHE = 'medicalc-v7';
+const CACHE = 'medicalc-v8';
 const CORE  = ['/', '/bundle.js', '/icon-192.png', '/icon-512.png', '/manifest.json'];
 
 self.addEventListener('install', e => {

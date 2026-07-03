@@ -6,6 +6,7 @@ import {
 import { COLORS } from '../data/medicines';
 import { fuzzyMatch } from '../utils/fuzzyMatch';
 import { parseVoiceText } from '../utils/parseVoiceText';
+import { suggestMatches } from '../utils/suggestMatches';
 import { supabase } from '../lib/supabase';
 
 const SpeechRecognitionAPI = typeof window !== 'undefined'
@@ -76,7 +77,11 @@ export default function VoiceBillModal({ visible, onClose, medicines, onConfirm 
     }
     const recognition = new SpeechRecognitionAPI();
     recognition.lang = 'en-IN';
-    recognition.continuous = false;
+    // Continuous: keeps listening across pauses so multiple items can be
+    // said in one session ("2 strips paracetamol… 1 cough syrup…") instead
+    // of stopping after the first pause — ends only on manual Stop or a
+    // browser-side silence timeout (handled gracefully by onend either way).
+    recognition.continuous = true;
     recognition.interimResults = true;
 
     let finalTranscript = '';
@@ -128,6 +133,8 @@ export default function VoiceBillModal({ visible, onClose, medicines, onConfirm 
   const toggleItem = (id) =>
     setItems(p => p.map(x => x.id === id ? { ...x, included: !x.included } : x));
   const removeItem = (id) => setItems(p => p.filter(x => x.id !== id));
+  const selectSuggestion = (id, med) =>
+    setItems(p => p.map(x => x.id === id ? { ...x, match: med, included: true } : x));
 
   const handleConfirm = () => {
     const valid = items.filter(x => x.included && x.match && parseInt(x.qty) > 0);
@@ -151,8 +158,8 @@ export default function VoiceBillModal({ visible, onClose, medicines, onConfirm 
             <Text style={s.heroTitle}>{stage === 'listening' ? 'Listening…' : 'Say what to add'}</Text>
             <Text style={s.heroSub}>
               {stage === 'listening'
-                ? (liveText || 'e.g. "2 strips Paracetamol, 1 cough syrup"')
-                : 'Tap the mic and say the medicines and quantities you want to bill.'}
+                ? ([finalText, liveText].filter(Boolean).join(' ') || 'e.g. "2 strips Paracetamol, 1 cough syrup"')
+                : 'Tap the mic and keep speaking — add as many items as you like, one after another. Tap Stop when done.'}
             </Text>
 
             {!!error && (
@@ -212,7 +219,7 @@ export default function VoiceBillModal({ visible, onClose, medicines, onConfirm 
               )}
 
               {items.map(item => (
-                <View key={item.id} style={[s.itemCard, (!item.included || !item.match) && s.itemDim]}>
+                <View key={item.id} style={[s.itemCard, !item.included && s.itemDim, !item.match && s.itemNeedsReview]}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <TouchableOpacity onPress={() => item.match && toggleItem(item.id)} disabled={!item.match}>
                       <Text style={{ fontSize: 20 }}>{item.included && item.match ? '☑️' : '⬜'}</Text>
@@ -246,6 +253,19 @@ export default function VoiceBillModal({ visible, onClose, medicines, onConfirm 
                       <Text style={{ color: '#ef4444', fontSize: 18, lineHeight: 22 }}>✕</Text>
                     </TouchableOpacity>
                   </View>
+
+                  {!item.match && (
+                    <View style={s.suggestRow}>
+                      <Text style={s.suggestLabel}>Did you mean:</Text>
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, flex: 1 }}>
+                        {suggestMatches(item.name, medicines, 3).map(med => (
+                          <TouchableOpacity key={med.id} style={s.suggestChip} onPress={() => selectSuggestion(item.id, med)}>
+                            <Text style={s.suggestChipText}>{med.name}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </View>
+                  )}
                 </View>
               ))}
             </ScrollView>
@@ -313,10 +333,15 @@ const s = StyleSheet.create({
                     borderWidth: 1, borderColor: '#e5e7eb',
                     shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 4, elevation: 1 },
   itemDim:        { opacity: 0.5 },
+  itemNeedsReview:{ borderColor: '#f59e0b', borderWidth: 1.5 },
   nameInput:      { fontSize: 13, fontWeight: '600', color: '#111', paddingBottom: 3,
                     borderBottomWidth: 1, borderBottomColor: '#e5e7eb' },
   matchText:      { fontSize: 11, color: '#1565C0' },
   newText:        { fontSize: 11, color: '#dc2626' },
+  suggestRow:     { flexDirection: 'row', alignItems: 'center', gap: 6, paddingLeft: 28, marginTop: 2 },
+  suggestLabel:   { fontSize: 11, color: '#92400e', fontWeight: '600' },
+  suggestChip:    { backgroundColor: '#fffbeb', borderWidth: 1, borderColor: '#f59e0b', borderRadius: 14, paddingHorizontal: 10, paddingVertical: 4 },
+  suggestChipText:{ fontSize: 11, color: '#92400e', fontWeight: '500' },
   qtyCol:         { alignItems: 'center', gap: 2 },
   qtyBox:         { borderWidth: 1.5, borderColor: '#d1d5db', borderRadius: 8,
                     paddingHorizontal: 6, paddingVertical: 4,
