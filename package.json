@@ -11,6 +11,7 @@
     "build": "NODE_ENV=production webpack --config webpack.config.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.110.0",
     "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-navigation/bottom-tabs": "^6.5.11",
     "@react-navigation/native": "^6.1.9",
