@@ -10,6 +10,7 @@ import BillHistoryScreen from '../screens/BillHistoryScreen';
 import BillDetailScreen  from '../screens/BillDetailScreen';
 import CustomersScreen   from '../screens/CustomersScreen';
 import ReportsScreen     from '../screens/ReportsScreen';
+import AskDataScreen     from '../screens/AskDataScreen';
 import ProfileScreen     from '../screens/ProfileScreen';
 import { COLORS } from '../data/medicines';
 import { useIsDesktop } from '../utils/responsive';
@@ -24,6 +25,15 @@ function BillingStack() {
       <Stack.Screen name="BillingMain"   component={BillingScreen} />
       <Stack.Screen name="BillHistory"   component={BillHistoryScreen} />
       <Stack.Screen name="BillDetail"    component={BillDetailScreen} />
+    </Stack.Navigator>
+  );
+}
+
+function ReportsStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="ReportsMain" component={ReportsScreen} />
+      <Stack.Screen name="AskData"     component={AskDataScreen} />
     </Stack.Navigator>
   );
 }
@@ -79,7 +89,7 @@ export default function AppNavigator() {
       <Tab.Screen name="Inventory" component={InventoryScreen} options={{ tabBarLabel: LABELS.Inventory }} />
       <Tab.Screen name="Billing"   component={BillingStack}    options={{ tabBarLabel: LABELS.Billing }} />
       <Tab.Screen name="Customers" component={CustomersScreen} options={{ tabBarLabel: LABELS.Customers }} />
-      <Tab.Screen name="Reports"   component={ReportsScreen}   options={{ tabBarLabel: LABELS.Reports }} />
+      <Tab.Screen name="Reports"   component={ReportsStack}    options={{ tabBarLabel: LABELS.Reports }} />
       <Tab.Screen name="Profile"   component={ProfileScreen}   options={{ tabBarLabel: LABELS.Profile }} />
     </Tab.Navigator>
   );

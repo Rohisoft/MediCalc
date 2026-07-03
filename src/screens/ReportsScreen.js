@@ -37,7 +37,7 @@ function filterBills(bills, period) {
   });
 }
 
-export default function ReportsScreen() {
+export default function ReportsScreen({ navigation }) {
   const { state } = useStore();
   const [period, setPeriod] = useState('Today');
 
@@ -80,6 +80,15 @@ export default function ReportsScreen() {
       </View>
 
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+        <TouchableOpacity style={styles.askDataCard} onPress={() => navigation.navigate('AskData')}>
+          <Text style={styles.askDataIcon}>✨</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.askDataTitle}>Ask Your Data</Text>
+            <Text style={styles.askDataSub}>Ask a question about your sales &amp; inventory</Text>
+          </View>
+          <Text style={styles.askDataChevron}>›</Text>
+        </TouchableOpacity>
+
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow} contentContainerStyle={{ gap: 8, paddingHorizontal: 16 }}>
           {['Today', 'This Week', 'This Month', 'All Time'].map(p => (
             <TouchableOpacity key={p} style={[styles.chip, period === p && styles.chipActive]} onPress={() => setPeriod(p)}>
@@ -162,6 +171,11 @@ const styles = StyleSheet.create({
   topbar:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: COLORS.primary, paddingHorizontal: 16, paddingVertical: 12 },
   title:        { color: '#fff', fontSize: 18, fontWeight: '600' },
   scroll:       { flex: 1, backgroundColor: COLORS.bg },
+  askDataCard:  { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: COLORS.white, borderRadius: 14, padding: 14, marginHorizontal: 16, marginTop: 12, borderWidth: 0.5, borderColor: COLORS.border },
+  askDataIcon:  { fontSize: 24 },
+  askDataTitle: { fontSize: 14, fontWeight: '600', color: COLORS.text },
+  askDataSub:   { fontSize: 11, color: COLORS.textMuted, marginTop: 2 },
+  askDataChevron: { fontSize: 20, color: COLORS.border },
   chipRow:      { maxHeight: 44, marginVertical: 10 },
   chip:         { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, borderWidth: 0.5, borderColor: COLORS.border, backgroundColor: COLORS.white },
   chipActive:   { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
