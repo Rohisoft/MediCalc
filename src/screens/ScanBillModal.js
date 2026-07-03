@@ -4,6 +4,7 @@ import {
   StyleSheet, ActivityIndicator, TextInput, SafeAreaView,
 } from 'react-native';
 import { COLORS } from '../data/medicines';
+import { fuzzyMatch } from '../utils/fuzzyMatch';
 
 // ─── OCR via window.Tesseract (loaded from CDN in index.html) ──
 async function runOCR(dataUrl, onStatus, onProgress) {
@@ -130,17 +131,6 @@ function parseBillText(raw) {
     });
   }
   return results;
-}
-
-function fuzzyMatch(name, medicines) {
-  const q = name.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
-  let m = medicines.find(x => x.name.toLowerCase() === q);
-  if (m) return m;
-  m = medicines.find(x => x.name.toLowerCase().includes(q) || q.includes(x.name.toLowerCase()));
-  if (m) return m;
-  const first = q.split(' ')[0];
-  if (first.length > 3) m = medicines.find(x => x.name.toLowerCase().startsWith(first));
-  return m || null;
 }
 
 // ─── Component ────────────────────────────────────────────────
