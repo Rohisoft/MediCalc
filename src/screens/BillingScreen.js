@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { CATEGORIES, COLORS } from '../data/medicines';
 import { useStore } from '../store/useStore';
+import VoiceBillModal from './VoiceBillModal';
 
 const PAYMENT_METHODS = ['Cash', 'UPI', 'Card', 'Credit'];
 const PAY_LABEL = { Cash: 'Cash 💵', UPI: 'UPI 📱', Card: 'Card 💳', Credit: 'Pay Later 📒' };
@@ -18,6 +19,7 @@ export default function BillingScreen({ navigation }) {
   const [showCustomerPicker, setShowCustomerPicker] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
   const [discountInput, setDiscountInput]           = useState('');
+  const [showVoice, setShowVoice]                   = useState(false);
 
   const billItems        = state.cart;
   const selectedCustomer = state.customers.find(c => c.id === selectedCustomerId) || null;
@@ -43,6 +45,15 @@ export default function BillingScreen({ navigation }) {
   };
 
   const changeQty = (id, delta) => dispatch({ type: 'UPDATE_CART_QTY', id, delta });
+
+  const handleVoiceConfirm = (voiceItems) => {
+    voiceItems.forEach(({ medicineId, qty }) => {
+      const med = state.medicines.find(m => m.id === medicineId);
+      if (!med || med.stock === 0 || med.status === 'out') return;
+      dispatch({ type: 'ADD_TO_CART', item: { id: med.id, name: med.name, price: med.price, unit: med.unit, stock: med.stock } });
+      if (qty > 1) dispatch({ type: 'UPDATE_CART_QTY', id: med.id, delta: qty - 1 });
+    });
+  };
 
   const completeBill = () => {
     if (billItems.length === 0) return;
@@ -105,6 +116,9 @@ export default function BillingScreen({ navigation }) {
             <Text style={{ color: COLORS.textMuted, fontSize: 16 }}>✕</Text>
           </TouchableOpacity>
         ) : null}
+        <TouchableOpacity onPress={() => setShowVoice(true)} style={{ paddingLeft: 10 }}>
+          <Text style={{ fontSize: 18 }}>🎙️</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Category chips */}
@@ -321,6 +335,13 @@ export default function BillingScreen({ navigation }) {
           </View>
         </View>
       </Modal>
+
+      <VoiceBillModal
+        visible={showVoice}
+        onClose={() => setShowVoice(false)}
+        medicines={state.medicines}
+        onConfirm={handleVoiceConfirm}
+      />
     </SafeAreaView>
   );
 }
