@@ -1,8 +1,8 @@
 require('dotenv').config();
 const path = require('path');
-const webpack            = require('webpack');
-const HtmlWebpackPlugin  = require('html-webpack-plugin');
-const CopyWebpackPlugin  = require('copy-webpack-plugin');
+const webpack = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const RN_PACKAGES = [
   'react-native',
@@ -15,7 +15,7 @@ const RN_PACKAGES = [
   '@react-native-async-storage',
 ].join('|');
 
-const isProd   = process.env.NODE_ENV === 'production';
+const isProd = process.env.NODE_ENV === 'production';
 const BASE_PATH = process.env.BASE_PATH || '/';
 
 module.exports = {
@@ -40,7 +40,10 @@ module.exports = {
           loader: 'babel-loader',
           options: {
             presets: [
-              ['@babel/preset-env', { targets: { browsers: 'last 2 versions' } }],
+              [
+                '@babel/preset-env',
+                { targets: { browsers: 'last 2 versions' } },
+              ],
               ['@babel/preset-react', { runtime: 'automatic' }],
             ],
           },
@@ -54,21 +57,28 @@ module.exports = {
   },
   plugins: [
     new webpack.DefinePlugin({
-      'process.env.SUPABASE_URL':       JSON.stringify(process.env.SUPABASE_URL       || ''),
-      'process.env.SUPABASE_ANON_KEY':  JSON.stringify(process.env.SUPABASE_ANON_KEY  || ''),
-      'process.env.ANTHROPIC_API_KEY':  JSON.stringify(process.env.ANTHROPIC_API_KEY  || ''),
-      'process.env.BASE_PATH':          JSON.stringify(BASE_PATH),
+      'process.env.SUPABASE_URL': JSON.stringify(
+        process.env.SUPABASE_URL || '',
+      ),
+      'process.env.SUPABASE_ANON_KEY': JSON.stringify(
+        process.env.SUPABASE_ANON_KEY || '',
+      ),
+      'process.env.BASE_PATH': JSON.stringify(BASE_PATH),
     }),
     new HtmlWebpackPlugin({ template: './public/index.html' }),
     new CopyWebpackPlugin({
       patterns: [
-        { from: 'public/manifest.json',  to: 'manifest.json' },
-        { from: 'public/sw.js',          to: 'sw.js' },
-        { from: 'public/icon-192.png',   to: 'icon-192.png' },
-        { from: 'public/icon-512.png',   to: 'icon-512.png' },
-        { from: 'public/_redirects',    to: '_redirects', toType: 'file' },
-        { from: 'public/guide.html',      to: 'guide.html',       toType: 'file' },
-        { from: 'public/vrndai-logo.svg', to: 'vrndai-logo.svg',  toType: 'file' },
+        { from: 'public/manifest.json', to: 'manifest.json' },
+        { from: 'public/sw.js', to: 'sw.js' },
+        { from: 'public/icon-192.png', to: 'icon-192.png' },
+        { from: 'public/icon-512.png', to: 'icon-512.png' },
+        { from: 'public/_redirects', to: '_redirects', toType: 'file' },
+        { from: 'public/guide.html', to: 'guide.html', toType: 'file' },
+        {
+          from: 'public/vrndai-logo.svg',
+          to: 'vrndai-logo.svg',
+          toType: 'file',
+        },
       ],
     }),
   ],
